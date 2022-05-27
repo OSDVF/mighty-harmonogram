@@ -81,13 +81,17 @@ useHead({
                ">
                 <TipTap
                   v-if="!commentNotName"
+                  title="Upravit název aktivity"
                   v-model="activities[day - 1].rows[row-1].name"
                   @input="touchCell(day - 1, row - 1)"
                   @close="stopEdit()"
                 />
               </client-only>
               <div v-else>
-                <div v-html="activities[day - 1]?.rows[row-1]?.name ?? ''">
+                <div
+                  v-html="activities[day - 1]?.rows[row-1]?.name ?? ''"
+                  @dblclick="startEdit(day, row, false)"
+                >
                 </div>
                 <button
                   v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
@@ -107,14 +111,16 @@ useHead({
                ">
               <TipTap
                 v-model="activities[day - 1].rows[row-1].comment"
+                title="Upravit komentář"
                 @input="touchCell(day - 1, row - 1)"
                 @close="stopEdit()"
               />
             </client-only>
             <div
               class="comment"
-              v-else
-              v-html="activities[day - 1]?.rows[row-1]?.comment ?? ''"
+              v-else-if="activities[day - 1]?.rows[row-1]?.comment"
+              v-html="activities[day - 1]?.rows[row-1]?.comment"
+              @dblclick="startEdit(day, row, true)"
             >
             </div>
             <button
@@ -340,9 +346,15 @@ export default {
       });
     },
     startEdit(day, row, commentNotName) {
-      this.commentNotName = commentNotName;
-      this.editDay = day;
-      this.editRow = row;
+      var theActivity = this.activities[day - 1].rows[row - 1];
+      if (theActivity.touch < Date.now() - 1000 || theActivity.key == this.meKey) {
+        this.commentNotName = commentNotName;
+        this.editDay = day;
+        this.editRow = row;
+      }
+      else {
+        alert("Někdo tuto buňku právě upravuje.");
+      }
     },
     stopEdit() {
       this.editDay = 0;
@@ -352,7 +364,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 :root {
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
     Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji",
@@ -462,8 +474,7 @@ export default {
   border-top: none;
   border-bottom-style: dashed;
 }
-.schedule thead td:not(:first-child)
-{
+.schedule thead td:not(:first-child) {
   min-width: 70px;
 }
 
@@ -492,5 +503,34 @@ i.icon[class^="bg"] {
   background: rgb(var(--bg));
   width: 16px !important;
   margin-right: 7px;
+}
+
+.comment {
+  border-top: 1px dashed darkgray;
+  opacity: 0.9;
+  background: #efe99e36;
+  overflow: hidden;
+}
+.comment p {
+  margin-block-end: 0.5em;
+  margin-block-start: 0.5em;
+}
+.schedule {
+  .ol,
+  .ul {
+    line-height: 0.75rem;
+  }
+  p {
+    margin-block-end: 0.5em;
+    margin-block-start: 0.5em;
+  }
+  h2 {
+    margin-block-start: 0.4em;
+    margin-block-end: 0.4em;
+  }
+  h3 {
+    margin-block-start: 0.2em;
+    margin-block-end: 0.2em;
+  }
 }
 </style>

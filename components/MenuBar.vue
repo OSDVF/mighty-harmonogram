@@ -12,6 +12,7 @@
         v-bind="item"
       />
     </template>
+    <strong style="margin-left:10px">{{title}}</strong>
   </div>
 </template>
 
@@ -22,6 +23,10 @@ export default {
       type: Object,
       required: true,
     },
+    title: {
+      type: String,
+      default: ''
+    }
   },
 
   data() {
@@ -63,13 +68,13 @@ export default {
         {
           icon: 'h-1',
           title: 'Heading 1',
-          action: () => this.editor.chain().focus().toggleHeading({ level: 1 }).run(),
+          action: () => this.editor.chain().focus().toggleHeading({ level: 2 }).run(),
           isActive: () => this.editor.isActive('heading', { level: 1 }),
         },
         {
           icon: 'h-2',
           title: 'Heading 2',
-          action: () => this.editor.chain().focus().toggleHeading({ level: 2 }).run(),
+          action: () => this.editor.chain().focus().toggleHeading({ level: 3 }).run(),
           isActive: () => this.editor.isActive('heading', { level: 2 }),
         },
         {
@@ -160,5 +165,8 @@ export default {
   background-color: rgba(0, 0, 0, 0.1);
   margin-left: 0.5rem;
   margin-right: 0.75rem;
+}
+.editor__header {
+  display: flex;
 }
 </style>

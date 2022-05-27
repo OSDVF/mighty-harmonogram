@@ -4,6 +4,7 @@
       v-if="editor"
       class="editor__header"
       :editor="editor"
+      :title="title"
     />
     <editor-content :editor="editor" />
     <div
@@ -19,6 +20,9 @@
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import Highlight from '@tiptap/extension-highlight'
+import TaskList from '@tiptap/extension-task-list'
+import TaskItem from '@tiptap/extension-task-item'
 
 export default {
   components: {
@@ -30,6 +34,10 @@ export default {
       type: String,
       default: '',
     },
+    title: {
+      type: String,
+      default: ''
+    }
   },
 
   data() {
@@ -60,7 +68,12 @@ export default {
         StarterKit,
         Placeholder.configure({
           placeholder: 'Napište něco...'
-        })
+        }),
+        Highlight,
+        TaskList,
+        TaskItem.configure({
+          nested: false,
+        }),
       ],
       content: this.modelValue,
       onUpdate: () => {
@@ -79,7 +92,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
@@ -89,11 +102,14 @@ export default {
 }
 .editor {
   position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
+  top: 10%;
+  left: 5px;
+  bottom: 5px;
+  right: 5px;
   background: white;
+  border: 3px solid rgb(63, 63, 63);
+  padding: 10px;
+  border-radius: 7px;
   z-index: 10;
 }
 .editor__close {
@@ -105,5 +121,27 @@ export default {
   border-radius: 2px;
   font-size: 20px;
   padding: 5px;
+}
+ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+
+  p {
+    margin: 0;
+  }
+
+  li {
+    display: flex;
+
+    > label {
+      flex: 0 0 auto;
+      margin-right: 0.5rem;
+      user-select: none;
+    }
+
+    > div {
+      flex: 1 1 auto;
+    }
+  }
 }
 </style>
