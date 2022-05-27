@@ -69,8 +69,9 @@ useHead({
             :key="`a${day}`"
             tabindex="0"
             :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
+            @contextmenu="onContextMenu($event, day-1, row-1)"
           >
-            <div @contextmenu="onContextMenu($event, day-1, row-1)">
+            <div>
               <client-only v-if="
               editDay == day &&
                editRow == row &&
@@ -338,6 +339,14 @@ export default {
         x: event.x,
         y: event.y,
         items: [
+          {
+            label: 'Upravit aktivitu',
+            onClick: () => this.startEdit(day + 1, time + 1, false)
+          },
+          {
+            label: 'Upravit komentář',
+            onClick: () => this.startEdit(day + 1, time + 1, true)
+          },
           {
             label: "Barva",
             children: [
