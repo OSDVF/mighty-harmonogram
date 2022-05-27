@@ -5,6 +5,7 @@
       class="editor__header"
       :editor="editor"
       :title="title"
+      @applied="$emit('update:modelValue', editor.getHTML())"
     />
     <editor-content :editor="editor" />
     <div
@@ -23,6 +24,8 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Highlight from '@tiptap/extension-highlight'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
+import TextStyle from '@tiptap/extension-text-style'
+import { Color } from '@tiptap/extension-color'
 
 export default {
   components: {
@@ -74,6 +77,8 @@ export default {
         TaskItem.configure({
           nested: false,
         }),
+        TextStyle,
+        Color,
       ],
       content: this.modelValue,
       onUpdate: () => {

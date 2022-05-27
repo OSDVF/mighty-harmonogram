@@ -83,7 +83,7 @@ useHead({
                   v-if="!commentNotName"
                   title="Upravit název aktivity"
                   v-model="activities[day - 1].rows[row-1].name"
-                  @input="touchCell(day - 1, row - 1)"
+                  @update:modelValue="touchCell(day - 1, row - 1)"
                   @close="stopEdit()"
                 />
               </client-only>
@@ -112,7 +112,7 @@ useHead({
               <TipTap
                 v-model="activities[day - 1].rows[row-1].comment"
                 title="Upravit komentář"
-                @input="touchCell(day - 1, row - 1)"
+                @update:modelValue="touchCell(day - 1, row - 1)"
                 @close="stopEdit()"
               />
             </client-only>

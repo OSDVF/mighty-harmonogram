@@ -2,11 +2,14 @@
   <button
     class="menu-item"
     :class="{ 'is-active': isActive ? isActive(): null }"
-    @click="action"
+    @click="action($event)"
     :title="title"
   >
     <svg class="remix">
-      <use :xlink:href="`${remixiconUrl}#ri-${icon}`" />
+      <use
+        :xlink:href="`${remixiconUrl}#ri-${icon}`"
+        :style="{fill:color}"
+      />
     </svg>
   </button>
 </template>
@@ -35,6 +38,11 @@ export default {
       type: Function,
       default: null,
     },
+
+    color: {
+      type: String,
+      default: null
+    }
   },
 
   data() {
@@ -49,7 +57,7 @@ export default {
 .menu-item {
   width: 1.75rem;
   height: 1.75rem;
-  color: #0D0D0D;
+  color: #0d0d0d;
   border: none;
   background-color: transparent;
   border-radius: 0.4rem;
@@ -64,8 +72,8 @@ export default {
 
   &.is-active,
   &:hover {
-    color: #FFF;
-    background-color: #0D0D0D;
+    color: #fff;
+    background-color: #0d0d0d;
   }
 }
 </style>
