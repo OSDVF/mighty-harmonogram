@@ -29,6 +29,10 @@
         </option>
       </select>
     </label>
+    <label><input
+        type="checkbox"
+        v-model="showComments"
+      >Komentáře</label>
     <table class="schedule">
       <thead>
         <tr>
@@ -106,14 +110,14 @@
             </client-only>
             <div
               class="comment"
-              v-else-if="activities[day - 1]?.rows[row-1]?.comment"
+              v-else-if="convert(activities[day - 1]?.rows[row-1]?.comment ?? '') && showComments"
               v-html="activities[day - 1]?.rows[row-1]?.comment"
               @dblclick="startEdit(day, row, true)"
             >
             </div>
             <button
               v-if="activities[day - 1]?.rows[row - 1]?.name
-              &&!(activities[day - 1]?.rows[row - 1]?.comment ?? false)"
+              &&!(activities[day - 1]?.rows[row - 1]?.comment)"
               class="startEdit"
               @click="startEdit(day, row, true)"
             >+ komentář</button>
@@ -122,7 +126,10 @@
       </tbody>
     </table>
     {{error}}
-    <a href="https://github.com/osdvf/mighty-harmonogram" target="_blank">GitHub Repozitář</a>
+    <a
+      href="https://github.com/osdvf/mighty-harmonogram"
+      target="_blank"
+    >GitHub Repozitář</a>
   </div>
 </template>
 <script>
@@ -131,6 +138,7 @@ import { db } from "~/firebase.js"
 import { get, ref, set, onValue } from "firebase/database";
 import '~/jsExtensions';
 import { debounce } from 'throttle-debounce';
+import { convert } from 'html-to-text';
 
 export default {
   data() {
@@ -142,6 +150,7 @@ export default {
       editDay: 0,
       editRow: 0,
       commentNotName: false,
+      showComments: true,
       text: {
         time: 'Čas'
       },
@@ -265,6 +274,7 @@ export default {
     }
   },
   methods: {
+    convert: convert,
     touchCell(day, row) {
       this.activities[day].rows[row].touch = Date.now();
       this.activities[day].rows[row].key = this.meKey;

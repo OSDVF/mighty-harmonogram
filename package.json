@@ -20,6 +20,7 @@
     "@tiptap/starter-kit": "^2.0.0-beta.185",
     "@tiptap/vue-3": "^2.0.0-beta.91",
     "firebase": "^9.8.1",
+    "html-to-text": "^8.2.0",
     "remixicon": "^2.5.0",
     "sass": "^1.52.1",
     "throttle-debounce": "^5.0.0",
