@@ -142,7 +142,7 @@ import '~/style.scss'
 import { db } from "~/firebase.js"
 import { get, ref, set, onValue } from "firebase/database";
 import '~/jsExtensions';
-import { debounce } from 'debounce';
+import { debounce } from 'throttle-debounce';
 
 export default {
   data() {
@@ -197,7 +197,7 @@ export default {
     }
   },
   beforeMount() {
-    this.debouncedWrite = debounce(this.writeToDatabase, 1000);
+    this.debouncedWrite = debounce(1000, this.writeToDatabase);
   },
   async mounted() {
     if (this.$route.hash) {
