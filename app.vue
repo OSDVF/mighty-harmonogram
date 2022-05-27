@@ -1,12 +1,13 @@
 <script setup>
 useHead({
   titleTemplate: 'Mighty Harmonogram',
+  // or, instead:
+  // titleTemplate: (title) => `My App - ${title}`,
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   charset: 'utf-8',
   meta: [
-    { name: 'description', content: 'K plánování Letní Travné.' }
+    { name: 'description', content: 'My amazing site.' }
   ],
-  script: { src: "https://cdn.tiny.cloud/1/1lwj3hyoynp6tw1pudkz7m2x9f5hrw50kylh837tzmbkv2mz/tinymce/6/tinymce.min.js", referrerpolicy: "origin" }
 })
 </script>
 
@@ -66,28 +67,34 @@ useHead({
           <td
             v-for="day in days"
             :key="`a${day}`"
+            tabindex="0"
+            :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
           >
-            <div
-              :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
-              @contextmenu="onContextMenu($event, day-1, row-1)"
-            >
+            <div @contextmenu="onContextMenu($event, day-1, row-1)">
               <client-only v-if="
               editDay == day &&
                editRow == row &&
-               !commentNotName &&
-               (activities[day - 1]?.rows[row-1].touch < nowTimestamp - 2000 
+               (activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000 
                 || 
-                activities[day - 1]?.rows[row-1].key == this.meKey
+                activities[day - 1]?.rows[row-1]?.key == this.meKey
                )
                ">
                 <TipTap
+                  v-if="!commentNotName"
                   v-model="activities[day - 1].rows[row-1].name"
                   @input="touchCell(day - 1, row - 1)"
+                  @close="stopEdit()"
                 />
               </client-only>
-              <template v-else>
-                {{activities[day - 1]?.rows[row-1]?.name}}
-              </template>
+              <div v-else>
+                <div v-html="activities[day - 1]?.rows[row-1]?.name ?? ''">
+                </div>
+                <button
+                  v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
+                  class="startEdit"
+                  @click="startEdit(day, row, false)"
+                >+ popisek</button>
+              </div>
             </div>
             <client-only v-if="activities[day - 1]?.rows[row-1] != null &&
                editDay == day &&
@@ -101,11 +108,21 @@ useHead({
               <TipTap
                 v-model="activities[day - 1].rows[row-1].comment"
                 @input="touchCell(day - 1, row - 1)"
+                @close="stopEdit()"
               />
             </client-only>
-            <div v-else>
-              {{activities[day - 1]?.rows[row-1]?.comment}}
+            <div
+              class="comment"
+              v-else
+              v-html="activities[day - 1]?.rows[row-1]?.comment ?? ''"
+            >
             </div>
+            <button
+              v-if="activities[day - 1]?.rows[row - 1]?.name
+              &&!(activities[day - 1]?.rows[row - 1]?.comment ?? false)"
+              class="startEdit"
+              @click="startEdit(day, row, true)"
+            >+ komentář</button>
           </td>
         </tr>
       </tbody>
@@ -158,6 +175,15 @@ export default {
   {
     days() {
       this.addMissingDays();
+      this.addMissingRows();
+    },
+    from() {
+      this.addMissingDays();
+      this.addMissingRows();
+    },
+    to() {
+      this.addMissingDays();
+      this.addMissingRows();
     }
   },
   async mounted() {
@@ -288,30 +314,39 @@ export default {
           {
             label: "Barva",
             children: [
-              { label: 'white', onClick: this.setActivityType(day, time, 0) },
-              { label: 'amber', icon: 'bg-amber', onClick: this.setActivityType(day, time, 1) },
-              { label: 'blue', icon: 'bg-blue', onClick: this.setActivityType(day, time, 2) },
-              { label: 'blue-grey', icon: 'bg-blue-grey', onClick: this.setActivityType(day, time, 3) },
-              { label: 'brown', icon: 'bg-brown', onClick: this.setActivityType(day, time, 4) },
-              { label: 'cyan', icon: 'bg-cyan', onClick: this.setActivityType(day, time, 5) },
-              { label: 'deep-orange', icon: 'bg-deep-orange', onClick: this.setActivityType(day, time, 6) },
-              { label: 'deep-purple', icon: 'bg-deep-purple', onClick: this.setActivityType(day, time, 7) },
-              { label: 'green', icon: 'bg-green', onClick: this.setActivityType(day, time, 8) },
-              { label: 'grey', icon: 'bg-grey', onClick: this.setActivityType(day, time, 9) },
-              { label: 'indigo', icon: 'bg-indigo', onClick: this.setActivityType(day, time,) },
-              { label: 'light-blue', icon: 'bg-light-blue', onClick: this.setActivityType(day, time, 10) },
-              { label: 'light-green', icon: 'bg-light-green', onClick: this.setActivityType(day, time, 11) },
-              { label: 'lime', icon: 'bg-lime', onClick: this.setActivityType(day, time, 12) },
-              { label: 'orange', icon: 'bg-orange', onClick: this.setActivityType(day, time, 13) },
-              { label: 'pink', icon: 'bg-pink', onClick: this.setActivityType(day, time, 14) },
-              { label: 'purple', icon: 'bg-purple', onClick: this.setActivityType(day, time, 15) },
-              { label: 'red', icon: 'bg-red', onClick: this.setActivityType(day, time, 16) },
-              { label: 'teal', icon: 'bg-teal', onClick: this.setActivityType(day, time, 17) },
-              { label: 'yellow', icon: 'bg-yellow', onClick: this.setActivityType(day, time, 18) },
+              { label: 'white', onClick: () => this.setActivityType(day, time, 0) },
+              { label: 'amber', icon: 'bg-amber', onClick: () => this.setActivityType(day, time, 1) },
+              { label: 'blue', icon: 'bg-blue', onClick: () => this.setActivityType(day, time, 2) },
+              { label: 'blue-grey', icon: 'bg-blue-grey', onClick: () => this.setActivityType(day, time, 3) },
+              { label: 'brown', icon: 'bg-brown', onClick: () => this.setActivityType(day, time, 4) },
+              { label: 'cyan', icon: 'bg-cyan', onClick: () => this.setActivityType(day, time, 5) },
+              { label: 'deep-orange', icon: 'bg-deep-orange', onClick: () => this.setActivityType(day, time, 6) },
+              { label: 'deep-purple', icon: 'bg-deep-purple', onClick: () => this.setActivityType(day, time, 7) },
+              { label: 'green', icon: 'bg-green', onClick: () => this.setActivityType(day, time, 8) },
+              { label: 'grey', icon: 'bg-grey', onClick: () => this.setActivityType(day, time, 9) },
+              { label: 'indigo', icon: 'bg-indigo', onClick: () => this.setActivityType(day, time,) },
+              { label: 'light-blue', icon: 'bg-light-blue', onClick: () => this.setActivityType(day, time, 10) },
+              { label: 'light-green', icon: 'bg-light-green', onClick: () => this.setActivityType(day, time, 11) },
+              { label: 'lime', icon: 'bg-lime', onClick: () => this.setActivityType(day, time, 12) },
+              { label: 'orange', icon: 'bg-orange', onClick: () => this.setActivityType(day, time, 13) },
+              { label: 'pink', icon: 'bg-pink', onClick: () => this.setActivityType(day, time, 14) },
+              { label: 'purple', icon: 'bg-purple', onClick: () => this.setActivityType(day, time, 15) },
+              { label: 'red', icon: 'bg-red', onClick: () => this.setActivityType(day, time, 16) },
+              { label: 'teal', icon: 'bg-teal', onClick: () => this.setActivityType(day, time, 17) },
+              { label: 'yellow', icon: 'bg-yellow', onClick: () => this.setActivityType(day, time, 18) },
             ]
           },
         ]
       });
+    },
+    startEdit(day, row, commentNotName) {
+      this.commentNotName = commentNotName;
+      this.editDay = day;
+      this.editRow = row;
+    },
+    stopEdit() {
+      this.editDay = 0;
+      this.editRow = 0;
     }
   },
 }
@@ -325,7 +360,7 @@ export default {
 }
 
 .schedule {
-  --bg: 230, 230, 230;
+  --bg: 250, 250, 250;
   border-collapse: collapse;
 }
 .schedule td.day {
@@ -409,21 +444,39 @@ export default {
 }
 
 .schedule > tbody > tr:nth-child(even) > td {
-  background: rgba(var(--bg), 0.2);
+  background: rgba(var(--bg), 0.4);
 }
 .schedule > tbody > tr:nth-child(odd) > td {
-  background: rgba(var(--bg), 0.1);
+  background: rgba(var(--bg), 0.2);
 }
 .schedule > tbody > tr > td:first-child {
   --bg: 127, 127, 127;
+  text-align: center;
 }
 
 .schedule thead td {
+  text-align: center;
   background: #00000017;
   padding: 5px;
   border: 1px solid #00000050;
   border-top: none;
   border-bottom-style: dashed;
+}
+.schedule thead td:not(:first-child)
+{
+  min-width: 70px;
+}
+
+.schedule tbody td > div:first-child {
+  min-height: 40px;
+}
+
+.schedule td button.startEdit {
+  display: none;
+}
+.schedule td:hover button.startEdit,
+.schedule td:focus button.startEdit {
+  display: unset;
 }
 
 .schedule thead td:first-child {
@@ -434,8 +487,8 @@ export default {
   border-right: none;
 }
 
-i.icon {
-  height: 26px;
+i.icon[class^="bg"] {
+  height: 16px;
   background: rgb(var(--bg));
   width: 16px !important;
   margin-right: 7px;

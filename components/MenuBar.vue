@@ -154,9 +154,10 @@ export default {
 
 <style>
 .divider {
+  display: inline-block;
   width: 2px;
   height: 1.25rem;
-  background-color: rgba(#000, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
   margin-left: 0.5rem;
   margin-right: 0.75rem;
 }
