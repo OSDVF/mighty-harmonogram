@@ -1,3 +1,15 @@
+<script setup>
+useHead({
+  titleTemplate: 'Mighty Harmonogram',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  charset: 'utf-8',
+  meta: [
+    { name: 'description', content: 'K plánování Letní Travné.' }
+  ],
+  script: { src: "https://cdn.tiny.cloud/1/1lwj3hyoynp6tw1pudkz7m2x9f5hrw50kylh837tzmbkv2mz/tinymce/6/tinymce.min.js", referrerpolicy: "origin" }
+})
+</script>
+
 <template>
   <div>
     <h1 style="display:inline-block">Harmonikogram 😎👉📈</h1>&ensp;
@@ -54,26 +66,67 @@
           <td
             v-for="day in days"
             :key="`a${day}`"
-            :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
-            @contextmenu="onContextMenu($event, day-1, row-1)"
           >
-            {{
-            activities[day - 1]?.rows[row-1]?.name
-          }}
+            <div
+              :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
+              @contextmenu="onContextMenu($event, day-1, row-1)"
+            >
+              <client-only v-if="
+              editDay == day &&
+               editRow == row &&
+               !commentNotName &&
+               (activities[day - 1]?.rows[row-1].touch < nowTimestamp - 2000 
+                || 
+                activities[day - 1]?.rows[row-1].key == this.meKey
+               )
+               ">
+                <TipTap
+                  v-model="activities[day - 1].rows[row-1].name"
+                  @input="touchCell(day - 1, row - 1)"
+                />
+              </client-only>
+              <template v-else>
+                {{activities[day - 1]?.rows[row-1]?.name}}
+              </template>
+            </div>
+            <client-only v-if="activities[day - 1]?.rows[row-1] != null &&
+               editDay == day &&
+               editRow == row &&
+               commentNotName &&
+               (activities[day - 1]?.rows[row-1].touch < nowTimestamp
+               || 
+                activities[day - 1]?.rows[row-1].key == this.meKey
+                )
+               ">
+              <TipTap
+                v-model="activities[day - 1].rows[row-1].comment"
+                @input="touchCell(day - 1, row - 1)"
+              />
+            </client-only>
+            <div v-else>
+              {{activities[day - 1]?.rows[row-1]?.comment}}
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
+    {{error}}
   </div>
 </template>
 <script>
 import { db } from "~/firebase.js"
-import { ref, set, child } from "firebase/database";
+import { get, ref, set } from "firebase/database";
 import '~/jsExtensions';
 
 export default {
   data() {
     return {
+      meKey: (Math.random() + 1).toString(36).substring(7),
+      nowTimestamp: Date.now(),
+      error: '',
+      editDay: 0,
+      editRow: 0,
+      commentNotName: false,
       text: {
         time: 'Čas'
       },
@@ -94,15 +147,32 @@ export default {
               name: 'Budíček',
               type: 0,
               comment: 'ahoj<br>čau',
-              halfHours: 2
+              touch: 0 //Last touched timestamp
             } */
           ]
         }
       ]
     }
   },
-  async fetch() {
-    await this.downloadActivities();
+  watch:
+  {
+    days() {
+      this.addMissingDays();
+    }
+  },
+  async mounted() {
+    try {
+      await this.downloadActivities();
+    }
+    catch (e) {
+      this.error = e;
+    }
+    this.addMissingDays();
+    this.addMissingRows();
+
+    setInterval(() => {
+      this.nowTimestamp = Date.now();//Refresh editing lock
+    }, 1000);
   },
   computed: {
     bgClasses() {
@@ -160,6 +230,38 @@ export default {
     }
   },
   methods: {
+    touchCell(day, row) {
+      this.activities[day].rows[row].touch = Date.now();
+      this.activities[day].rows[row].key = this.meKey;
+      // TODO sync with server
+    },
+    addMissingDays() {
+      var missingDaysCount = this.days - this.activities.length;
+      if (missingDaysCount > 0) {
+        for (var i = 0; i < missingDaysCount; i++) {
+          this.activities.push({
+            rows: []
+          });
+        }
+      }
+    },
+    addMissingRows() {
+      for (var i = 0; i < this.days; i++) {
+        var day = this.activities[i];
+        var missingRowsCount = this.nOfRows - day.rows.length;
+
+        if (missingRowsCount > 0) {
+          for (var j = 0; j < missingRowsCount; j++) {
+            this.activities[i].rows.push({
+              name: '',
+              type: 0,
+              comment: '',
+              touch: 0
+            });
+          }
+        }
+      }
+    },
     async writeToDatabase() {
       await set(ref(db, 'activities'), this.activities);
     },
@@ -172,6 +274,9 @@ export default {
         console.log("No data available");
       }
     },
+    setActivityType(day, time, type) {
+      this.activities[day].rows[time].type = type;
+    },
     onContextMenu(event, day, time) {
       //prevent the browser's default menu
       event.preventDefault();
@@ -181,34 +286,28 @@ export default {
         y: event.y,
         items: [
           {
-            label: "A menu item",
-            onClick: () => {
-              alert("You click a menu item");
-            }
-          },
-          {
             label: "Barva",
             children: [
-              { label: 'white' },
-              { label: 'amber', icon: 'bg-amber' },
-              { label: 'blue', icon: 'bg-blue' },
-              { label: 'blue-grey', icon: 'bg-blue-grey' },
-              { label: 'brown', icon: 'bg-brown' },
-              { label: 'cyan', icon: 'bg-cyan' },
-              { label: 'deep-orange', icon: 'bg-deep-orange' },
-              { label: 'deep-purple', icon: 'bg-deep-purple' },
-              { label: 'green', icon: 'bg-green' },
-              { label: 'grey', icon: 'bg-grey' },
-              { label: 'indigo', icon: 'bg-indigo' },
-              { label: 'light-blue', icon: 'bg-light-blue' },
-              { label: 'light-green', icon: 'bg-light-green' },
-              { label: 'lime', icon: 'bg-lime' },
-              { label: 'orange', icon: 'bg-orange' },
-              { label: 'pink', icon: 'bg-pink' },
-              { label: 'purple', icon: 'bg-purple' },
-              { label: 'red', icon: 'bg-red' },
-              { label: 'teal', icon: 'bg-teal' },
-              { label: 'yellow', icon: 'bg-yellow' },
+              { label: 'white', onClick: this.setActivityType(day, time, 0) },
+              { label: 'amber', icon: 'bg-amber', onClick: this.setActivityType(day, time, 1) },
+              { label: 'blue', icon: 'bg-blue', onClick: this.setActivityType(day, time, 2) },
+              { label: 'blue-grey', icon: 'bg-blue-grey', onClick: this.setActivityType(day, time, 3) },
+              { label: 'brown', icon: 'bg-brown', onClick: this.setActivityType(day, time, 4) },
+              { label: 'cyan', icon: 'bg-cyan', onClick: this.setActivityType(day, time, 5) },
+              { label: 'deep-orange', icon: 'bg-deep-orange', onClick: this.setActivityType(day, time, 6) },
+              { label: 'deep-purple', icon: 'bg-deep-purple', onClick: this.setActivityType(day, time, 7) },
+              { label: 'green', icon: 'bg-green', onClick: this.setActivityType(day, time, 8) },
+              { label: 'grey', icon: 'bg-grey', onClick: this.setActivityType(day, time, 9) },
+              { label: 'indigo', icon: 'bg-indigo', onClick: this.setActivityType(day, time,) },
+              { label: 'light-blue', icon: 'bg-light-blue', onClick: this.setActivityType(day, time, 10) },
+              { label: 'light-green', icon: 'bg-light-green', onClick: this.setActivityType(day, time, 11) },
+              { label: 'lime', icon: 'bg-lime', onClick: this.setActivityType(day, time, 12) },
+              { label: 'orange', icon: 'bg-orange', onClick: this.setActivityType(day, time, 13) },
+              { label: 'pink', icon: 'bg-pink', onClick: this.setActivityType(day, time, 14) },
+              { label: 'purple', icon: 'bg-purple', onClick: this.setActivityType(day, time, 15) },
+              { label: 'red', icon: 'bg-red', onClick: this.setActivityType(day, time, 16) },
+              { label: 'teal', icon: 'bg-teal', onClick: this.setActivityType(day, time, 17) },
+              { label: 'yellow', icon: 'bg-yellow', onClick: this.setActivityType(day, time, 18) },
             ]
           },
         ]
