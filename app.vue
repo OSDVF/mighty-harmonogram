@@ -137,13 +137,16 @@ useHead({
   </div>
 </template>
 <script>
+import '~/style.scss'
 import { db } from "~/firebase.js"
-import { get, ref, set } from "firebase/database";
+import { get, ref, set, onValue } from "firebase/database";
 import '~/jsExtensions';
+import { debounce } from 'debounce';
 
 export default {
   data() {
     return {
+      databaseKey: 'test',
       meKey: (Math.random() + 1).toString(36).substring(7),
       nowTimestamp: Date.now(),
       error: '',
@@ -192,9 +195,20 @@ export default {
       this.addMissingRows();
     }
   },
+  beforeMount() {
+    this.debouncedWrite = debounce(this.writeToDatabase, 1000);
+  },
   async mounted() {
+    if (this.$route.hash) {
+      this.databaseKey = this.$route.hash.substring(1);
+    }
+
     try {
       await this.downloadActivities();
+      onValue(ref(db, this.databaseKey), (snapshot) => {
+        const data = snapshot.val();
+        this.updateDisplayedData(data);
+      });
     }
     catch (e) {
       this.error = e;
@@ -265,7 +279,8 @@ export default {
     touchCell(day, row) {
       this.activities[day].rows[row].touch = Date.now();
       this.activities[day].rows[row].key = this.meKey;
-      // TODO sync with server
+
+      this.debouncedWrite();
     },
     addMissingDays() {
       var missingDaysCount = this.days - this.activities.length;
@@ -295,13 +310,19 @@ export default {
       }
     },
     async writeToDatabase() {
-      await set(ref(db, 'activities'), this.activities);
+      await set(ref(db, this.databaseKey), {
+        activities: this.activities,
+        firstDOW: this.firstDOW,
+        days: this.days,
+        to: this.to,
+        from: this.from
+      });
     },
     async downloadActivities() {
-      var snapshot = await get(ref(db, 'activities'))
+      var snapshot = await get(ref(db, this.databaseKey))
       if (snapshot.exists()) {
-        console.log(snapshot.val());
-        this.activities = snapshot.val();
+        var resultVal = snapshot.val();
+        this.updateDisplayedData(resultVal);
       } else {
         console.log("No data available");
       }
@@ -359,178 +380,14 @@ export default {
     stopEdit() {
       this.editDay = 0;
       this.editRow = 0;
+    },
+    updateDisplayedData(resultVal) {
+      this.activities = resultVal.activities;
+      this.days = resultVal.days;
+      this.from = resultVal.from;
+      this.to = resultVal.to;
+      this.firstDOW = resultVal.firstDOW;
     }
   },
 }
 </script>
-
-<style lang="scss">
-:root {
-  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji",
-    "Segoe UI Symbol";
-}
-
-.schedule {
-  --bg: 250, 250, 250;
-  border-collapse: collapse;
-}
-.schedule td.day {
-  border-bottom: 1px solid gray;
-}
-
-.bg-amber {
-  --bg: 255, 193, 7;
-}
-
-.bg-blue {
-  --bg: 33, 150, 243;
-}
-
-.bg-blue-grey {
-  --bg: 96, 125, 139;
-}
-
-.bg-brown {
-  --bg: 121, 85, 72;
-}
-
-.bg-cyan {
-  --bg: 0, 188, 212;
-}
-
-.bg-deep-orange {
-  --bg: 255, 87, 34;
-}
-
-.bg-deep-purple {
-  --bg: 103, 58, 183;
-}
-
-.bg-green {
-  --bg: 76, 175, 80;
-}
-
-.bg-grey {
-  --bg: 158, 158, 158;
-}
-
-.bg-indigo {
-  --bg: 63, 81, 181;
-}
-
-.bg-light-blue {
-  --bg: 3, 169, 244;
-}
-
-.bg-light-green {
-  --bg: 139, 195, 74;
-}
-
-.bg-lime {
-  --bg: 205, 220, 57;
-}
-
-.bg-orange {
-  --bg: 255, 152, 0;
-}
-
-.bg-pink {
-  --bg: 233, 30, 99;
-}
-
-.bg-purple {
-  --bg: 156, 39, 176;
-}
-
-.bg-red {
-  --bg: 244, 67, 54;
-}
-
-.bg-teal {
-  --bg: 0, 150, 136;
-}
-
-.bg-yellow {
-  --bg: 255, 235, 59;
-}
-
-.schedule > tbody > tr:nth-child(even) > td {
-  background: rgba(var(--bg), 0.4);
-}
-.schedule > tbody > tr:nth-child(odd) > td {
-  background: rgba(var(--bg), 0.2);
-}
-.schedule > tbody > tr > td:first-child {
-  --bg: 127, 127, 127;
-  text-align: center;
-}
-
-.schedule thead td {
-  text-align: center;
-  background: #00000017;
-  padding: 5px;
-  border: 1px solid #00000050;
-  border-top: none;
-  border-bottom-style: dashed;
-}
-.schedule thead td:not(:first-child) {
-  min-width: 70px;
-}
-
-.schedule tbody td > div:first-child {
-  min-height: 40px;
-}
-
-.schedule td button.startEdit {
-  display: none;
-}
-.schedule td:hover button.startEdit,
-.schedule td:focus button.startEdit {
-  display: unset;
-}
-
-.schedule thead td:first-child {
-  border-left: none;
-}
-
-.schedule thead td:last-child {
-  border-right: none;
-}
-
-i.icon[class^="bg"] {
-  height: 16px;
-  background: rgb(var(--bg));
-  width: 16px !important;
-  margin-right: 7px;
-}
-
-.comment {
-  border-top: 1px dashed darkgray;
-  opacity: 0.9;
-  background: #efe99e36;
-  overflow: hidden;
-}
-.comment p {
-  margin-block-end: 0.5em;
-  margin-block-start: 0.5em;
-}
-.schedule {
-  .ol,
-  .ul {
-    line-height: 0.75rem;
-  }
-  p {
-    margin-block-end: 0.5em;
-    margin-block-start: 0.5em;
-  }
-  h2 {
-    margin-block-start: 0.4em;
-    margin-block-end: 0.4em;
-  }
-  h3 {
-    margin-block-start: 0.2em;
-    margin-block-end: 0.2em;
-  }
-}
-</style>
