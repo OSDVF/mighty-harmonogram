@@ -1,16 +1,3 @@
-<script setup>
-useHead({
-  titleTemplate: 'Mighty Harmonogram',
-  // or, instead:
-  // titleTemplate: (title) => `My App - ${title}`,
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
-  charset: 'utf-8',
-  meta: [
-    { name: 'description', content: 'My amazing site.' }
-  ],
-})
-</script>
-
 <template>
   <div>
     <h1 style="display:inline-block">Harmonikogram 😎👉📈</h1>&ensp;
@@ -135,6 +122,7 @@ useHead({
       </tbody>
     </table>
     {{error}}
+    <a href="https://github.com/osdvf/mighty-harmonogram" target="_blank">GitHub Repozitář</a>
   </div>
 </template>
 <script>
