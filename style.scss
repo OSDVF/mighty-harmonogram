@@ -18,6 +18,28 @@
   border-bottom: 1px solid gray;
 }
 
+button.timeChange {
+  display: none;
+  position: absolute;
+  width: 25px;
+  height: 21px;
+  left: -30px;
+  top: 0px;
+}
+
+.schedule td:focus,
+.schedule td:focus-within {
+  outline: 2px solid rgba(var(--bg), 0.5);
+
+  button.timeChange {
+    display: block;
+  }
+}
+
+.schedule td:focus:not([class^="bg-"]) {
+  outline: 2px solid rgba(0, 0, 0, 0.3);
+}
+
 .bg-amber {
   --bg: 255, 193, 7;
 }
@@ -105,10 +127,12 @@
 .schedule>tbody>tr>td:first-child {
   --bg: 127, 127, 127;
   text-align: center;
+  vertical-align: middle;
 }
 
 .schedule tbody td {
   border: 1px solid rgba(0, 0, 0, 0.045);
+  vertical-align: top;
 }
 
 .schedule thead td {
@@ -126,12 +150,15 @@
   min-width: 70px;
 }
 
-.schedule tbody td>div:first-child {
+.schedule tbody td>div:nth-child(2) {
   min-height: 40px;
 }
 
 .schedule td button.startEdit {
   display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .schedule td:hover button.startEdit,
@@ -166,7 +193,8 @@ i.icon[class^="bg"] {
   margin-block-start: 0.5em;
 }
 
-.schedule {
+.schedule,
+.notes {
 
   .ol,
   .ul {

@@ -67,8 +67,36 @@
               :key="`a${day}`"
               tabindex="0"
               :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
+              :rowspan="activities[day - 1]?.rows[row-1]?.time"
               @contextmenu="onContextMenu($event, day-1, row-1)"
             >
+              <div style="position:relative">
+                <button
+                  title="Zkrátit trvání"
+                  class="timeChange"
+                  v-if="activities[day - 1]?.rows[row-1]?.time>1"
+                  @click="decreaseTime(day - 1, row - 1)"
+                >-</button>
+                <button
+                  title="Prodloužit trvání"
+                  class="timeChange"
+                  style="top:24px"
+                  @click="increaseTime(day - 1, row - 1)"
+                >+</button>
+                <button
+                  v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
+                  class="startEdit"
+                  @click="startEdit(day, row, false)"
+                  title="Přidat aktivitu"
+                >+ ✏️</button>
+                <button
+                  v-if="activities[day - 1]?.rows[row - 1]?.name
+                  &&!(activities[day - 1]?.rows[row - 1]?.comment)"
+                  class="startEdit"
+                  @click="startEdit(day, row, true)"
+                  title="Přidat komentáře"
+                >+ 💬</button>
+              </div>
               <div>
                 <client-only v-if="
                 editDay == day &&
@@ -92,11 +120,6 @@
                     @dblclick="startEdit(day, row, false)"
                   >
                   </div>
-                  <button
-                    v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
-                    class="startEdit"
-                    @click="startEdit(day, row, false)"
-                  >+ popisek</button>
                 </div>
               </div>
               <client-only v-if="activities[day - 1]?.rows[row-1] != null &&
@@ -122,12 +145,6 @@
                 @dblclick="startEdit(day, row, true)"
               >
               </div>
-              <button
-                v-if="activities[day - 1]?.rows[row - 1]?.name
-                &&!(activities[day - 1]?.rows[row - 1]?.comment)"
-                class="startEdit"
-                @click="startEdit(day, row, true)"
-              >+ komentář</button>
             </td>
           </tr>
         </tbody>
@@ -331,7 +348,8 @@ export default {
               name: '',
               type: 0,
               comment: '',
-              touch: 0
+              touch: 0,
+              time: 1
             });
           }
         }
@@ -429,6 +447,19 @@ export default {
       this.showComments = resultVal.showComments ?? this.showComments;
       this.note = resultVal.note || this.note;
       this.showNotes = resultVal.showNotes;
+    },
+    increaseTime(day, row) {
+      if (!this.activities[day].rows[row].time) {
+        this.activities[day].rows[row].time = 2;
+      }
+      else {
+        this.activities[day].rows[row].time++;
+      }
+      this.debouncedWrite();
+    },
+    decreaseTime(day, row) {
+      this.activities[day].rows[row].time--;
+      this.debouncedWrite();
     }
   },
 }
