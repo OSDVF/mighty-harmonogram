@@ -188,3 +188,19 @@ i.icon[class^="bg"] {
     margin-block-end: 0.2em;
   }
 }
+
+@media print {
+  .noprint {
+    display: none
+  }
+}
+
+.inline-block {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.notes {
+  padding: 0 10px;
+  border: 1px dashed rgba(255, 191, 0, 0.205);
+}

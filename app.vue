@@ -1,135 +1,160 @@
 <template>
   <div>
-    <h1 style="display:inline-block">Harmonikogram 😎👉📈</h1>&ensp;
-    <label>
-      <input
-        type="number"
-        v-model="days"
-      >
-      Dní
-    </label>
-    &ensp;
-    <label>
-      Od
-      <VueTimepicker v-model="from" />
-    </label>
-    <label>
-      Do
-      <VueTimepicker v-model="to" />
-    </label>
-    <label>
-      První den:
-      <select v-model="firstDOW">
-        <option
-          :value="index"
-          v-for="(dayName, index) in dayNames"
-          :key="dayName"
+    <div class="noprint">
+      <h1 style="display:inline-block">Harmonikogram 😎👉📈</h1>&ensp;
+      <label>
+        <input
+          type="number"
+          v-model="days"
         >
-          {{ dayName }}
-        </option>
-      </select>
-    </label>
-    <label><input
-        type="checkbox"
-        v-model="showComments"
-      >Komentáře</label>
-    <table class="schedule">
-      <thead>
-        <tr>
-          <td>{{text.time}}</td>
-          <td
-            v-for="day in days"
-            :key="day"
+        Dní
+      </label>
+      &ensp;
+      <label>
+        Od
+        <VueTimepicker v-model="from" />
+      </label>
+      <label>
+        Do
+        <VueTimepicker v-model="to" />
+      </label>
+      <label>
+        První den:
+        <select v-model="firstDOW">
+          <option
+            :value="index"
+            v-for="(dayName, index) in dayNames"
+            :key="dayName"
           >
-            {{dayNames[(day + firstDOW - 1) % dayNames.length].capitalize()}}
-          </td>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="row in nOfRows"
-          :key="`r${row - 1}`"
-        >
-          <td>
-            {{
-                `${parseInt(from.HH) + Math.floor(row/2)}:${(row - 1)%2 ? '30':'00'}`
-              }}
-          </td>
-          <td
-            v-for="day in days"
-            :key="`a${day}`"
-            tabindex="0"
-            :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
-            @contextmenu="onContextMenu($event, day-1, row-1)"
+            {{ dayName }}
+          </option>
+        </select>
+      </label>
+      <label><input
+          type="checkbox"
+          v-model="showComments"
+        >Komentáře</label>
+      <label><input
+          type="checkbox"
+          v-model="showNotes"
+        >Poznámky</label>
+    </div>
+    <div class="inline-block">
+      <table class="schedule">
+        <thead>
+          <tr>
+            <td>{{text.time}}</td>
+            <td
+              v-for="day in days"
+              :key="day"
+            >
+              {{dayNames[(day + firstDOW - 1) % dayNames.length].capitalize()}}
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="row in nOfRows"
+            :key="`r${row - 1}`"
           >
-            <div>
-              <client-only v-if="
-              editDay == day &&
-               editRow == row &&
-               (activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000 
-                || 
-                activities[day - 1]?.rows[row-1]?.key == this.meKey
-               )
-               ">
+            <td>
+              {{
+                  `${parseInt(from.HH) + Math.floor(row/2)}:${(row - 1)%2 ? '30':'00'}`
+                }}
+            </td>
+            <td
+              v-for="day in days"
+              :key="`a${day}`"
+              tabindex="0"
+              :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
+              @contextmenu="onContextMenu($event, day-1, row-1)"
+            >
+              <div>
+                <client-only v-if="
+                editDay == day &&
+                 editRow == row &&
+                 (activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000
+                  ||
+                  activities[day - 1]?.rows[row-1]?.key == this.meKey
+                 )
+                 ">
+                  <TipTap
+                    v-if="!commentNotName"
+                    title="Upravit název aktivity"
+                    v-model="activities[day - 1].rows[row-1].name"
+                    @update:modelValue="touchCell(day - 1, row - 1)"
+                    @close="stopEdit()"
+                  />
+                </client-only>
+                <div v-else>
+                  <div
+                    v-html="activities[day - 1]?.rows[row-1]?.name ?? ''"
+                    @dblclick="startEdit(day, row, false)"
+                  >
+                  </div>
+                  <button
+                    v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
+                    class="startEdit"
+                    @click="startEdit(day, row, false)"
+                  >+ popisek</button>
+                </div>
+              </div>
+              <client-only v-if="activities[day - 1]?.rows[row-1] != null &&
+                 editDay == day &&
+                 editRow == row &&
+                 commentNotName &&
+                 (activities[day - 1]?.rows[row-1].touch < nowTimestamp
+                 ||
+                  activities[day - 1]?.rows[row-1].key == this.meKey
+                  )
+                 ">
                 <TipTap
-                  v-if="!commentNotName"
-                  title="Upravit název aktivity"
-                  v-model="activities[day - 1].rows[row-1].name"
+                  v-model="activities[day - 1].rows[row-1].comment"
+                  title="Upravit komentář"
                   @update:modelValue="touchCell(day - 1, row - 1)"
                   @close="stopEdit()"
                 />
               </client-only>
-              <div v-else>
-                <div
-                  v-html="activities[day - 1]?.rows[row-1]?.name ?? ''"
-                  @dblclick="startEdit(day, row, false)"
-                >
-                </div>
-                <button
-                  v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
-                  class="startEdit"
-                  @click="startEdit(day, row, false)"
-                >+ popisek</button>
+              <div
+                class="comment"
+                v-else-if="activities[day - 1]?.rows[row-1]?.comment?.replace(/<(.|\n)*?>/g, '')?.trim() && showComments"
+                v-html="activities[day - 1]?.rows[row-1]?.comment"
+                @dblclick="startEdit(day, row, true)"
+              >
               </div>
-            </div>
-            <client-only v-if="activities[day - 1]?.rows[row-1] != null &&
-               editDay == day &&
-               editRow == row &&
-               commentNotName &&
-               (activities[day - 1]?.rows[row-1].touch < nowTimestamp
-               || 
-                activities[day - 1]?.rows[row-1].key == this.meKey
-                )
-               ">
-              <TipTap
-                v-model="activities[day - 1].rows[row-1].comment"
-                title="Upravit komentář"
-                @update:modelValue="touchCell(day - 1, row - 1)"
-                @close="stopEdit()"
-              />
-            </client-only>
-            <div
-              class="comment"
-              v-else-if="convert(activities[day - 1]?.rows[row-1]?.comment ?? '') && showComments"
-              v-html="activities[day - 1]?.rows[row-1]?.comment"
-              @dblclick="startEdit(day, row, true)"
-            >
-            </div>
-            <button
-              v-if="activities[day - 1]?.rows[row - 1]?.name
-              &&!(activities[day - 1]?.rows[row - 1]?.comment)"
-              class="startEdit"
-              @click="startEdit(day, row, true)"
-            >+ komentář</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    {{error}}
-    <a
-      href="https://github.com/osdvf/mighty-harmonogram"
-      target="_blank"
-    >GitHub Repozitář</a>
+              <button
+                v-if="activities[day - 1]?.rows[row - 1]?.name
+                &&!(activities[day - 1]?.rows[row - 1]?.comment)"
+                class="startEdit"
+                @click="startEdit(day, row, true)"
+              >+ komentář</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {{error}}
+      <a
+        href="https://github.com/osdvf/mighty-harmonogram"
+        target="_blank"
+        class="noprint"
+      >GitHub Repozitář</a>
+    </div>
+    &ensp;&ensp;
+    <template v-if="showNotes">
+      <div
+        class="inline-block notes"
+        @click="editingNotes = true"
+        v-html="note"
+      >
+      </div>
+      <TipTap
+        v-if="editingNotes"
+        v-model="note"
+        title="Poznámky"
+        @close="editingNotes = false"
+        @update:modelValue="updateNotes"
+      />
+    </template>
   </div>
 </template>
 <script>
@@ -138,11 +163,13 @@ import { db } from "~/firebase.js"
 import { get, ref, set, onValue } from "firebase/database";
 import '~/jsExtensions';
 import { debounce } from 'throttle-debounce';
-import { convert } from 'html-to-text';
 
 export default {
   data() {
     return {
+      showNotes: false,
+      editingNotes: false,
+      note: 'Poznámky...',
       databaseKey: 'test',
       meKey: (Math.random() + 1).toString(36).substring(7),
       nowTimestamp: Date.now(),
@@ -274,11 +301,13 @@ export default {
     }
   },
   methods: {
-    convert: convert,
     touchCell(day, row) {
       this.activities[day].rows[row].touch = Date.now();
       this.activities[day].rows[row].key = this.meKey;
 
+      this.debouncedWrite();
+    },
+    updateNotes() {
       this.debouncedWrite();
     },
     addMissingDays() {
@@ -314,7 +343,10 @@ export default {
         firstDOW: this.firstDOW,
         days: this.days,
         to: this.to,
-        from: this.from
+        from: this.from,
+        note: this.note,
+        showNotes: this.showNotes,
+        showComments: this.showComments
       });
     },
     async downloadActivities() {
@@ -358,16 +390,16 @@ export default {
               { label: 'deep-purple', icon: 'bg-deep-purple', onClick: () => this.setActivityType(day, time, 7) },
               { label: 'green', icon: 'bg-green', onClick: () => this.setActivityType(day, time, 8) },
               { label: 'grey', icon: 'bg-grey', onClick: () => this.setActivityType(day, time, 9) },
-              { label: 'indigo', icon: 'bg-indigo', onClick: () => this.setActivityType(day, time,) },
-              { label: 'light-blue', icon: 'bg-light-blue', onClick: () => this.setActivityType(day, time, 10) },
-              { label: 'light-green', icon: 'bg-light-green', onClick: () => this.setActivityType(day, time, 11) },
-              { label: 'lime', icon: 'bg-lime', onClick: () => this.setActivityType(day, time, 12) },
-              { label: 'orange', icon: 'bg-orange', onClick: () => this.setActivityType(day, time, 13) },
-              { label: 'pink', icon: 'bg-pink', onClick: () => this.setActivityType(day, time, 14) },
-              { label: 'purple', icon: 'bg-purple', onClick: () => this.setActivityType(day, time, 15) },
-              { label: 'red', icon: 'bg-red', onClick: () => this.setActivityType(day, time, 16) },
-              { label: 'teal', icon: 'bg-teal', onClick: () => this.setActivityType(day, time, 17) },
-              { label: 'yellow', icon: 'bg-yellow', onClick: () => this.setActivityType(day, time, 18) },
+              { label: 'indigo', icon: 'bg-indigo', onClick: () => this.setActivityType(day, time, 10) },
+              { label: 'light-blue', icon: 'bg-light-blue', onClick: () => this.setActivityType(day, time, 11) },
+              { label: 'light-green', icon: 'bg-light-green', onClick: () => this.setActivityType(day, time, 12) },
+              { label: 'lime', icon: 'bg-lime', onClick: () => this.setActivityType(day, time, 13) },
+              { label: 'orange', icon: 'bg-orange', onClick: () => this.setActivityType(day, time, 14) },
+              { label: 'pink', icon: 'bg-pink', onClick: () => this.setActivityType(day, time, 15) },
+              { label: 'purple', icon: 'bg-purple', onClick: () => this.setActivityType(day, time, 16) },
+              { label: 'red', icon: 'bg-red', onClick: () => this.setActivityType(day, time, 17) },
+              { label: 'teal', icon: 'bg-teal', onClick: () => this.setActivityType(day, time, 18) },
+              { label: 'yellow', icon: 'bg-yellow', onClick: () => this.setActivityType(day, time, 19) },
             ]
           },
         ]
@@ -394,6 +426,9 @@ export default {
       this.from = resultVal.from;
       this.to = resultVal.to;
       this.firstDOW = resultVal.firstDOW;
+      this.showComments = resultVal.showComments ?? this.showComments;
+      this.note = resultVal.note || this.note;
+      this.showNotes = resultVal.showNotes;
     }
   },
 }
