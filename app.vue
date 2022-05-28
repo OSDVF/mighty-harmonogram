@@ -38,9 +38,25 @@
           type="checkbox"
           v-model="showNotes"
         >Poznámky</label>
+      <input
+        name="maxW"
+        type="hidden"
+        v-model="maxWidth"
+      >
+      <input
+        name="maxH"
+        type="hidden"
+        v-model="maxHeight"
+      >
     </div>
     <div class="inline-block">
-      <table class="schedule">
+      <table
+        class="schedule"
+        :style="{
+        '--maxW':maxWidth,
+        '--maxH':maxHeight,
+      }"
+      >
         <thead>
           <tr>
             <td>{{text.time}}</td>
@@ -59,7 +75,7 @@
           >
             <td>
               {{
-                  `${parseInt(from.HH) + Math.floor(row/2)}:${(row - 1)%2 ? '30':'00'}`
+                  `${parseInt(from.HH) + Math.floor((row-1)/2)}:${(row - 1)%2 ? '30':'00'}`
                 }}
             </td>
             <td
@@ -97,7 +113,7 @@
                   title="Přidat komentáře"
                 >+ 💬</button>
               </div>
-              <div>
+              <div :style="{'--rs':activities[day - 1]?.rows[row-1]?.time ?? 1}">
                 <client-only v-if="
                 editDay == day &&
                  editRow == row &&
@@ -184,6 +200,8 @@ import { debounce } from 'throttle-debounce';
 export default {
   data() {
     return {
+      maxWidth: '300px',
+      maxHeight: '300px',
       showNotes: false,
       editingNotes: false,
       note: 'Poznámky...',
@@ -364,7 +382,9 @@ export default {
         from: this.from,
         note: this.note,
         showNotes: this.showNotes,
-        showComments: this.showComments
+        showComments: this.showComments,
+        maxWidth: this.maxWidth,
+        maxHeight: this.maxHeight
       });
     },
     async downloadActivities() {
@@ -447,6 +467,8 @@ export default {
       this.showComments = resultVal.showComments ?? this.showComments;
       this.note = resultVal.note || this.note;
       this.showNotes = resultVal.showNotes;
+      this.maxWidth = resultVal.maxWidth || this.maxWidth;
+      this.maxHeight = resultVal.maxHeight || this.maxHeight;
     },
     increaseTime(day, row) {
       if (!this.activities[day].rows[row].time) {
