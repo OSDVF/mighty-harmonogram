@@ -226,6 +226,14 @@ i.icon[class^="bg"] {
   .noprint {
     display: none
   }
+
+  .schedule thead td {
+    position: relative;
+    top: unset;
+  }
+  .schedule tbody td>div:nth-child(2){
+    overflow: hidden;
+  }
 }
 
 .inline-block {
