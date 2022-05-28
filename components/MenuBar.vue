@@ -206,5 +206,6 @@ export default {
 }
 .editor__header {
   display: flex;
+  flex-wrap: wrap;
 }
 </style>

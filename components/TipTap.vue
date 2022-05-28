@@ -106,8 +106,8 @@ export default {
   height: 0;
 }
 .editor {
-  position: absolute;
-  top: 10%;
+  position: fixed;
+  top: 10vh;
   left: 5px;
   bottom: 5px;
   right: 5px;
@@ -120,7 +120,7 @@ export default {
 .editor__close {
   position: absolute;
   right: 5px;
-  top: 5px;
+  top: -10vh;
   cursor: pointer;
   background: #00000011;
   border-radius: 2px;
