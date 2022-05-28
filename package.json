@@ -7,10 +7,10 @@
     "preview": "nuxt preview"
   },
   "devDependencies": {
-    "nuxt": "3.0.0-rc.3"
+    "nuxt": "3.0.0-rc.3",
+    "sass": "^1.52.1"
   },
   "dependencies": {
-    "@imengyu/vue3-context-menu": "^1.0.9",
     "@tiptap/extension-color": "^2.0.0-beta.9",
     "@tiptap/extension-highlight": "^2.0.0-beta.33",
     "@tiptap/extension-placeholder": "^2.0.0-beta.48",
@@ -20,10 +20,9 @@
     "@tiptap/starter-kit": "^2.0.0-beta.185",
     "@tiptap/vue-3": "^2.0.0-beta.91",
     "firebase": "^9.8.1",
-    "html-to-text": "^8.2.0",
     "remixicon": "^2.5.0",
-    "sass": "^1.52.1",
     "throttle-debounce": "^5.0.0",
+    "v-contextmenu": "^3.0.0",
     "vue3-timepicker": "^1.0.0-beta.2"
   }
 }

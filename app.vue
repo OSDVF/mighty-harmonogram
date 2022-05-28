@@ -84,7 +84,8 @@
               tabindex="0"
               :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
               :rowspan="activities[day - 1]?.rows[row-1]?.time"
-              @contextmenu="onContextMenu($event, day-1, row-1)"
+              v-contextmenu:contextmenu
+              @contextmenu.prevent.stop="$event.target.focus();contextDay = day-1; contextTime = row-1"
             >
               <div style="position:relative">
                 <button
@@ -188,6 +189,30 @@
         @update:modelValue="updateNotes"
       />
     </template>
+
+    <v-contextmenu ref="contextmenu">
+      <template
+        v-for="item in menuItems"
+        :key="item.label"
+      >
+        <v-contextmenu-submenu
+          v-if="item.children != null"
+          :title="item.label"
+        >
+          <v-contextmenu-item
+            v-for="subItem in item.children"
+            :class="subItem.class"
+            :key="subItem.label"
+            @click="subItem.onClick"
+          >{{subItem.label}}</v-contextmenu-item>
+        </v-contextmenu-submenu>
+        <v-contextmenu-item
+          @click="item.onClick"
+          :class="item.class"
+          v-else
+        >{{item.label}}</v-contextmenu-item>
+      </template>
+    </v-contextmenu>
   </div>
 </template>
 <script>
@@ -200,6 +225,8 @@ import { debounce } from 'throttle-debounce';
 export default {
   data() {
     return {
+      contextDay: 0,
+      contextTime: 0,
       maxWidth: '300px',
       maxHeight: '300px',
       showNotes: false,
@@ -237,6 +264,41 @@ export default {
             } */
           ]
         }
+      ],
+      menuItems: [
+        {
+          label: 'Upravit aktivitu',
+          onClick: () => this.startEdit(this.contextDay + 1, this.contextTime + 1, false)
+        },
+        {
+          label: 'Upravit komentář',
+          onClick: () => this.startEdit(this.contextDay + 1, this.contextTime + 1, true)
+        },
+        {
+          label: "Barva",
+          children: [
+            { label: 'white', onClick: () => this.setActivityType(0) },
+            { label: 'amber', class: 'bg-amber', onClick: () => this.setActivityType(1) },
+            { label: 'blue', class: 'bg-blue', onClick: () => this.setActivityType(2) },
+            { label: 'blue-grey', class: 'bg-blue-grey', onClick: () => this.setActivityType(3) },
+            { label: 'brown', class: 'bg-brown', onClick: () => this.setActivityType(4) },
+            { label: 'cyan', class: 'bg-cyan', onClick: () => this.setActivityType(5) },
+            { label: 'deep-orange', class: 'bg-deep-orange', onClick: () => this.setActivityType(6) },
+            { label: 'deep-purple', class: 'bg-deep-purple', onClick: () => this.setActivityType(7) },
+            { label: 'green', class: 'bg-green', onClick: () => this.setActivityType(8) },
+            { label: 'grey', class: 'bg-grey', onClick: () => this.setActivityType(9) },
+            { label: 'indigo', class: 'bg-indigo', onClick: () => this.setActivityType(10) },
+            { label: 'light-blue', class: 'bg-light-blue', onClick: () => this.setActivityType(11) },
+            { label: 'light-green', class: 'bg-light-green', onClick: () => this.setActivityType(12) },
+            { label: 'lime', class: 'bg-lime', onClick: () => this.setActivityType(13) },
+            { label: 'orange', class: 'bg-orange', onClick: () => this.setActivityType(14) },
+            { label: 'pink', class: 'bg-pink', onClick: () => this.setActivityType(15) },
+            { label: 'purple', class: 'bg-purple', onClick: () => this.setActivityType(16) },
+            { label: 'red', class: 'bg-red', onClick: () => this.setActivityType(17) },
+            { label: 'teal', class: 'bg-teal', onClick: () => this.setActivityType(18) },
+            { label: 'yellow', class: 'bg-yellow', onClick: () => this.setActivityType(19) },
+          ]
+        },
       ]
     }
   },
@@ -396,52 +458,9 @@ export default {
         console.log("No data available");
       }
     },
-    setActivityType(day, time, type) {
-      this.activities[day].rows[time].type = type;
-    },
-    onContextMenu(event, day, time) {
-      //prevent the browser's default menu
-      event.preventDefault();
-      //shou our menu
-      this.$contextmenu({
-        x: event.x,
-        y: event.y,
-        items: [
-          {
-            label: 'Upravit aktivitu',
-            onClick: () => this.startEdit(day + 1, time + 1, false)
-          },
-          {
-            label: 'Upravit komentář',
-            onClick: () => this.startEdit(day + 1, time + 1, true)
-          },
-          {
-            label: "Barva",
-            children: [
-              { label: 'white', onClick: () => this.setActivityType(day, time, 0) },
-              { label: 'amber', icon: 'bg-amber', onClick: () => this.setActivityType(day, time, 1) },
-              { label: 'blue', icon: 'bg-blue', onClick: () => this.setActivityType(day, time, 2) },
-              { label: 'blue-grey', icon: 'bg-blue-grey', onClick: () => this.setActivityType(day, time, 3) },
-              { label: 'brown', icon: 'bg-brown', onClick: () => this.setActivityType(day, time, 4) },
-              { label: 'cyan', icon: 'bg-cyan', onClick: () => this.setActivityType(day, time, 5) },
-              { label: 'deep-orange', icon: 'bg-deep-orange', onClick: () => this.setActivityType(day, time, 6) },
-              { label: 'deep-purple', icon: 'bg-deep-purple', onClick: () => this.setActivityType(day, time, 7) },
-              { label: 'green', icon: 'bg-green', onClick: () => this.setActivityType(day, time, 8) },
-              { label: 'grey', icon: 'bg-grey', onClick: () => this.setActivityType(day, time, 9) },
-              { label: 'indigo', icon: 'bg-indigo', onClick: () => this.setActivityType(day, time, 10) },
-              { label: 'light-blue', icon: 'bg-light-blue', onClick: () => this.setActivityType(day, time, 11) },
-              { label: 'light-green', icon: 'bg-light-green', onClick: () => this.setActivityType(day, time, 12) },
-              { label: 'lime', icon: 'bg-lime', onClick: () => this.setActivityType(day, time, 13) },
-              { label: 'orange', icon: 'bg-orange', onClick: () => this.setActivityType(day, time, 14) },
-              { label: 'pink', icon: 'bg-pink', onClick: () => this.setActivityType(day, time, 15) },
-              { label: 'purple', icon: 'bg-purple', onClick: () => this.setActivityType(day, time, 16) },
-              { label: 'red', icon: 'bg-red', onClick: () => this.setActivityType(day, time, 17) },
-              { label: 'teal', icon: 'bg-teal', onClick: () => this.setActivityType(day, time, 18) },
-              { label: 'yellow', icon: 'bg-yellow', onClick: () => this.setActivityType(day, time, 19) },
-            ]
-          },
-        ]
-      });
+    setActivityType(type) {
+      this.activities[this.contextDay].rows[this.contextTime].type = type;
+      this.debouncedWrite();
     },
     startEdit(day, row, commentNotName) {
       var theActivity = this.activities[day - 1].rows[row - 1];

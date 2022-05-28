@@ -1,5 +1,5 @@
-import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
-import ContextMenu from '@imengyu/vue3-context-menu'
+import ContextMenu from 'v-contextmenu';
+import "v-contextmenu/dist/themes/default.css";
 
 export default defineNuxtPlugin((nuxtApp) => {
     nuxtApp.vueApp.use(ContextMenu)

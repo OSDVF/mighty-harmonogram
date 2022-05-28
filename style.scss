@@ -179,11 +179,12 @@ button.timeChange {
   border-right: none;
 }
 
-i.icon[class^="bg"] {
-  height: 16px;
+.v-contextmenu-item {
   background: rgb(var(--bg));
-  width: 16px !important;
-  margin-right: 7px;
+}
+
+.v-contextmenu-item--hover {
+  --bg: 70, 160, 252;
 }
 
 .comment {
@@ -231,7 +232,8 @@ i.icon[class^="bg"] {
     position: relative;
     top: unset;
   }
-  .schedule tbody td>div:nth-child(2){
+
+  .schedule tbody td>div:nth-child(2) {
     overflow: hidden;
   }
 }
