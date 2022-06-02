@@ -126,8 +126,18 @@ button.timeChange {
 
 .schedule>tbody>tr>td:first-child {
   --bg: 127, 127, 127;
-  text-align: center;
   vertical-align: middle;
+
+  input {
+    text-align: center;
+    vertical-align: middle;
+    border: 0;
+    background: transparent;
+    margin: 0;
+    padding: 0;
+    max-width: 50px;
+    font-size: 1rem;
+  }
 }
 
 .schedule tbody td {

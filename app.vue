@@ -75,9 +75,11 @@
             :key="`r${row - 1}`"
           >
             <td>
-              {{
-                  `${parseInt(from.HH) + Math.floor((row-1)/2)}:${(row - 1)%2 ? '30':'00'}`
-                }}
+              <input
+                type="text"
+                :value="this.times[row-1] || `${parseInt(from.HH) + Math.floor((row - 1) / 2) }:${ (row - 1) % 2 ? '30' : '00' }`"
+                @input="changeTimes(row-1, $event)"
+              >
             </td>
             <td
               v-for="day in days"
@@ -260,6 +262,7 @@ export default {
         HH: '23',
         mm: '00',
       },
+      times: [],
       activities: [
         {
           rows: [
@@ -336,7 +339,9 @@ export default {
       await this.downloadActivities();
       onValue(ref(db, this.databaseKey), (snapshot) => {
         const data = snapshot.val();
-        this.updateDisplayedData(data);
+        if (data) {
+          this.updateDisplayedData(data);
+        }
       });
 
       var connectionsRef = ref(db, "/connections/" + this.databaseKey);
@@ -478,7 +483,8 @@ export default {
         showNotes: this.showNotes,
         showComments: this.showComments,
         maxWidth: this.maxWidth,
-        maxHeight: this.maxHeight
+        maxHeight: this.maxHeight,
+        times: this.times
       });
     },
     async downloadActivities() {
@@ -510,10 +516,8 @@ export default {
       this.editRow = 0;
     },
     updateDisplayedData(resultVal) {
-      for(var activity of resultVal.activities)
-      {
-        for(var row of activity.rows)
-        {
+      for (var activity of resultVal.activities) {
+        for (var row of activity.rows) {
           row.comment = sanitize(row.comment);
           row.name = sanitize(row.name);
         }
@@ -528,6 +532,7 @@ export default {
       this.showNotes = resultVal.showNotes;
       this.maxWidth = resultVal.maxWidth || this.maxWidth;
       this.maxHeight = resultVal.maxHeight || this.maxHeight;
+      this.times = resultVal.times || this.times;
     },
     increaseTime(day, row) {
       if (!this.activities[day].rows[row].time) {
@@ -540,6 +545,10 @@ export default {
     },
     decreaseTime(day, row) {
       this.activities[day].rows[row].time--;
+      this.debouncedWrite();
+    },
+    changeTimes(row, event) {
+      this.times[row] = event.target.value;
       this.debouncedWrite();
     }
   },
