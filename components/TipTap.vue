@@ -1,13 +1,19 @@
 <template>
-  <div class="editor">
-    <menu-bar
-      v-if="editor"
-      class="editor__header"
-      :editor="editor"
-      :title="title"
-      @applied="$emit('update:modelValue', editor.getHTML())"
-    />
-    <editor-content :editor="editor" />
+  <div>
+    <div class="editor">
+      <menu-bar
+        v-if="editor"
+        class="editor__header"
+        :editor="editor"
+        :title="title"
+        @applied="$emit('update:modelValue', editor.getHTML())"
+      />
+      <editor-content
+        @click="focusProseMirror"
+        :editor="editor"
+        class="editor__content"
+      />
+    </div>
     <div
       @click="$emit('close')"
       class="editor__close"
@@ -90,6 +96,11 @@ export default {
       },
     })
   },
+  methods: {
+    focusProseMirror(event) {
+      event.target?.children[0]?.focus();
+    }
+  },
 
   beforeUnmount() {
     this.editor.destroy()
@@ -117,16 +128,14 @@ export default {
   border-radius: 7px;
   z-index: 10;
 }
-.editor__close {
-  position: absolute;
-  right: 5px;
-  top: -10vh;
-  cursor: pointer;
-  background: #00000011;
-  border-radius: 2px;
-  font-size: 20px;
-  padding: 5px;
+.editor__content {
+  overflow: auto;
+  min-height: 100%;
+  & > div {
+    height: 100%;
+  }
 }
+
 ul[data-type="taskList"] {
   list-style: none;
   padding: 0;

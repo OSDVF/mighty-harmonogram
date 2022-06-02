@@ -46,79 +46,79 @@ button.timeChange {
 }
 
 .bg-amber {
-  --bg: 255, 193, 7;
+  --bg: 255, 193, 7 !important;
 }
 
 .bg-blue {
-  --bg: 33, 150, 243;
+  --bg: 33, 150, 243 !important;
 }
 
 .bg-blue-grey {
-  --bg: 96, 125, 139;
+  --bg: 96, 125, 139 !important;
 }
 
 .bg-brown {
-  --bg: 121, 85, 72;
+  --bg: 121, 85, 72 !important;
 }
 
 .bg-cyan {
-  --bg: 0, 188, 212;
+  --bg: 0, 188, 212 !important;
 }
 
 .bg-deep-orange {
-  --bg: 255, 87, 34;
+  --bg: 255, 87, 34 !important;
 }
 
 .bg-deep-purple {
-  --bg: 103, 58, 183;
+  --bg: 103, 58, 183 !important;
 }
 
 .bg-green {
-  --bg: 76, 175, 80;
+  --bg: 76, 175, 80 !important;
 }
 
 .bg-grey {
-  --bg: 158, 158, 158;
+  --bg: 158, 158, 158 !important;
 }
 
 .bg-indigo {
-  --bg: 63, 81, 181;
+  --bg: 63, 81, 181 !important;
 }
 
 .bg-light-blue {
-  --bg: 3, 169, 244;
+  --bg: 3, 169, 244 !important;
 }
 
 .bg-light-green {
-  --bg: 139, 195, 74;
+  --bg: 139, 195, 74 !important;
 }
 
 .bg-lime {
-  --bg: 205, 220, 57;
+  --bg: 205, 220, 57 !important;
 }
 
 .bg-orange {
-  --bg: 255, 152, 0;
+  --bg: 255, 152, 0 !important;
 }
 
 .bg-pink {
-  --bg: 233, 30, 99;
+  --bg: 233, 30, 99 !important;
 }
 
 .bg-purple {
-  --bg: 156, 39, 176;
+  --bg: 156, 39, 176 !important;
 }
 
 .bg-red {
-  --bg: 244, 67, 54;
+  --bg: 244, 67, 54 !important;
 }
 
 .bg-teal {
-  --bg: 0, 150, 136;
+  --bg: 0, 150, 136 !important;
 }
 
 .bg-yellow {
-  --bg: 255, 235, 59;
+  --bg: 255, 235, 59 !important;
 }
 
 .schedule>tbody>tr>td {
@@ -257,4 +257,15 @@ button.timeChange {
 .notes {
   padding: 0 10px;
   border: 1px dashed rgba(255, 191, 0, 0.205);
+}
+
+.editor__close {
+  position: fixed;
+  right: 5px;
+  top: 5px;
+  cursor: pointer;
+  background: #00000011;
+  border-radius: 2px;
+  font-size: 20px;
+  padding: 5px;
 }

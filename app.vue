@@ -86,7 +86,7 @@
               :key="`a${day}`"
             >
               <td
-                v-if="activities[day -1]?.rows.slice(0,row-1)?.every((rw,rwIndex)=>(rw.time + rwIndex) < row) ?? true"
+                v-if="activities[day -1]?.rows.slice(0,row-1)?.every((rw,rwIndex)=>((rw.time ?? 1) + rwIndex) < row) ?? true"
                 tabindex="0"
                 :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
                 :rowspan="activities[day - 1]?.rows[row-1]?.time"
@@ -140,6 +140,7 @@
                   <div v-else>
                     <div
                       contenteditable="true"
+                      @focus="quickEditing = true"
                       @blur="onActivityInput($event, day -1, row -1)"
                       v-html="activities[day - 1]?.rows[row-1]?.name ?? ''"
                       @dblclick="startEdit(day, row, false)"
@@ -203,6 +204,13 @@
       />
     </template>
 
+    <div
+      v-show="quickEditing"
+      class="editor__close"
+    >
+      ✔️
+    </div>
+
     <v-contextmenu ref="contextmenu">
       <template
         v-for="item in menuItems"
@@ -250,6 +258,7 @@ function customPolicy(tagName, attribs) {
 export default {
   data() {
     return {
+      quickEditing: false,
       connected: 1,
       contextDay: 0,
       contextTime: 0,
@@ -569,6 +578,7 @@ export default {
       this.debouncedWrite();
     },
     onActivityInput(event, day, row) {
+      this.quickEditing = false;
       this.activities[day].rows[row].name = sanitizeWithPolicy(event.target.innerHTML, customPolicy);
       this.debouncedWrite();
     }
