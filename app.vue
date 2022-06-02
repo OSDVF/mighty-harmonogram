@@ -152,7 +152,7 @@
                 <TipTap
                   v-model="activities[day - 1].rows[row-1].comment"
                   title="Upravit komentář"
-                  @update:modelValue="touchCell(day - 1, row - 1,true)"
+                  @update:modelValue="touchCell(day - 1, row - 1)"
                   @close="stopEdit()"
                 />
               </client-only>
@@ -430,12 +430,9 @@ export default {
     }
   },
   methods: {
-    touchCell(day, row, san) {
+    touchCell(day, row) {
       this.activities[day].rows[row].touch = Date.now();
       this.activities[day].rows[row].key = this.meKey;
-      if (san === true) {
-        this.activities[day].rows[row].comment = sanitize(this.activities[day].rows[row].comment);
-      }
 
       this.debouncedWrite();
     },
@@ -513,6 +510,14 @@ export default {
       this.editRow = 0;
     },
     updateDisplayedData(resultVal) {
+      for(var activity of resultVal.activities)
+      {
+        for(var row of activity.rows)
+        {
+          row.comment = sanitize(row.comment);
+          row.name = sanitize(row.name);
+        }
+      }
       this.activities = resultVal.activities;
       this.days = resultVal.days;
       this.from = resultVal.from;

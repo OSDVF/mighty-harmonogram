@@ -116,12 +116,6 @@ export default {
           isActive: () => this.editor.isActive('heading', { level: 3 }),
         },
         {
-          icon: 'paragraph',
-          title: 'Paragraph',
-          action: () => this.editor.chain().focus().setParagraph().run(),
-          isActive: () => this.editor.isActive('paragraph'),
-        },
-        {
           icon: 'list-unordered',
           title: 'Bullet List',
           action: () => this.editor.chain().focus().toggleBulletList().run(),
@@ -191,7 +185,7 @@ export default {
         },
       ],
     }
-  },
+  }
 }
 </script>
 
