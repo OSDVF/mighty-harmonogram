@@ -48,6 +48,7 @@
         type="hidden"
         v-model="maxHeight"
       >
+      <small style="position:absolute;top:5px;left:5px">Aktuálně připojeno {{connected}} uživatelů.</small>
     </div>
     <div class="inline-block">
       <table
@@ -151,7 +152,7 @@
                 <TipTap
                   v-model="activities[day - 1].rows[row-1].comment"
                   title="Upravit komentář"
-                  @update:modelValue="touchCell(day - 1, row - 1)"
+                  @update:modelValue="touchCell(day - 1, row - 1,true)"
                   @close="stopEdit()"
                 />
               </client-only>
@@ -167,11 +168,15 @@
         </tbody>
       </table>
       {{error}}
-      <a
-        href="https://github.com/osdvf/mighty-harmonogram"
-        target="_blank"
-        class="noprint"
-      >GitHub Repozitář</a>
+      <span class="noprint">© 2022 OSDVF. Vytvořeno pro <a
+          href="https://travna.cz"
+          target="_blank"
+        >Setkávání Travná z.s.</a>&nbsp;
+        <a
+          href="https://github.com/osdvf/mighty-harmonogram"
+          target="_blank"
+        >GitHub Repozitář</a>
+      </span>
     </div>
     &ensp;&ensp;
     <template v-if="showNotes">
@@ -218,13 +223,15 @@
 <script>
 import '~/style.scss'
 import { db } from "~/firebase.js"
-import { get, ref, set, onValue } from "firebase/database";
+import { get, ref, set, onValue, push, onDisconnect } from "firebase/database";
 import '~/jsExtensions';
 import { debounce } from 'throttle-debounce';
+import { sanitize } from 'google-caja';
 
 export default {
   data() {
     return {
+      connected: 1,
       contextDay: 0,
       contextTime: 0,
       maxWidth: '300px',
@@ -331,6 +338,31 @@ export default {
         const data = snapshot.val();
         this.updateDisplayedData(data);
       });
+
+      var connectionsRef = ref(db, "/connections/" + this.databaseKey);
+
+      var connectedRef = ref(db, ".info/connected/");
+      // Number of online users is the number of objects in the presence list.
+
+      // When the client's connection state changes...
+      onValue(connectedRef, async (snap) => {
+
+        // If they are connected..
+        if (snap.val()) {
+
+          // Add user to the connections list.
+          var con = await push(connectionsRef, true);
+
+          // Remove user from the connection list when they disconnect.
+          onDisconnect(con).remove();
+        }
+      });
+
+      onValue(connectionsRef, (snap) => {
+        if (snap.val()) {
+          this.connected = snap.size;
+        }
+      })
     }
     catch (e) {
       this.error = e;
@@ -398,9 +430,12 @@ export default {
     }
   },
   methods: {
-    touchCell(day, row) {
+    touchCell(day, row, san) {
       this.activities[day].rows[row].touch = Date.now();
       this.activities[day].rows[row].key = this.meKey;
+      if (san === true) {
+        this.activities[day].rows[row].comment = sanitize(this.activities[day].rows[row].comment);
+      }
 
       this.debouncedWrite();
     },
