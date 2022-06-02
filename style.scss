@@ -12,6 +12,11 @@
   --bg: 250, 250, 250;
   border-collapse: collapse;
   border-spacing: 0;
+
+  tr:nth-child(even)>td {
+    --bg: 230, 230, 230;
+    border-bottom-color: #00000026;
+  }
 }
 
 .schedule td.day {
@@ -116,12 +121,8 @@ button.timeChange {
   --bg: 255, 235, 59;
 }
 
-.schedule>tbody>tr:nth-child(even)>td {
+.schedule>tbody>tr>td {
   background: rgba(var(--bg), 0.4);
-}
-
-.schedule>tbody>tr:nth-child(odd)>td {
-  background: rgba(var(--bg), 0.2);
 }
 
 .schedule>tbody>tr>td:first-child {
