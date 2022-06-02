@@ -171,6 +171,7 @@
                   @dblclick="startEdit(day, row, true)"
                 >
                 </div>
+                <small class="editInfo" v-if="activities[day - 1]?.rows[row-1]?.touch">Upraveno {{ new Date(activities[day - 1]?.rows[row-1]?.touch).toLocaleString() }}</small>
               </td>
             </template>
           </tr>
