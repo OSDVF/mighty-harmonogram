@@ -4,6 +4,10 @@
     "Segoe UI Symbol";
 }
 
+h1 {
+  margin-block-end: .1em;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -44,6 +48,7 @@ button.timeChange {
   button.timeChange {
     display: block;
   }
+
   .editInfo {
     display: block;
     color: #626262;
@@ -244,6 +249,10 @@ button.timeChange {
     margin-block-start: 0.2em;
     margin-block-end: 0.2em;
   }
+}
+
+.noprint label {
+  white-space: nowrap;
 }
 
 @media print {

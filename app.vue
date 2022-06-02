@@ -2,11 +2,13 @@
   <div>
     <div class="noprint">
       <h1 style="display:inline-block">Harmonikogram 😎👉📈</h1>&ensp;
+      {{error}}
       <label>Jméno:<input
           type="text"
           v-model="meKey"
+          @input="changeName"
         ></label>
-      <button @click="showSettings = !showSettings">Nastavení</button>&ensp;
+      <button @click="showSettings = !showSettings">🔧 Nastavení</button>&ensp;
       <template v-if="showSettings"><label>
           <input
             type="number"
@@ -145,9 +147,10 @@
                   </client-only>
                   <div v-else>
                     <div
-                      contenteditable="true"
+                      :contenteditable="activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000 ? 'true':'false'"
                       @focus="quickEditing = true"
                       @blur="onActivityInput($event, day -1, row -1)"
+                      @input="touchCell(day - 1, row - 1)"
                       v-html="activities[day - 1]?.rows[row-1]?.name ?? ''"
                       @dblclick="startEdit(day, row, false)"
                     >
@@ -186,7 +189,6 @@
           </tr>
         </tbody>
       </table>
-      {{error}}
       <span class="noprint">© 2022 OSDVF. Vytvořeno pro <a
           href="https://travna.cz"
           target="_blank"
@@ -368,6 +370,11 @@ export default {
     this.debouncedWrite = debounce(1000, this.writeToDatabase);
   },
   async mounted() {
+    var savedName = localStorage.meKey;
+    if (savedName) {
+      this.meKey = savedName;
+    }
+
     if (this.$route.hash) {
       this.databaseKey = this.$route.hash.substring(1);
     }
@@ -376,7 +383,7 @@ export default {
       await this.downloadActivities();
       onValue(ref(db, this.databaseKey), (snapshot) => {
         const data = snapshot.val();
-        if (data && this.editDay == 0/* not editing currently */) {
+        if (data && this.editDay == 0 && this.quickEditing == false /* not editing currently */) {
           this.updateDisplayedData(data);
         }
       });
@@ -593,8 +600,11 @@ export default {
       this.activities[day].rows[row].name = sanitizeWithPolicy(event.target.innerHTML, customPolicy);
       this.activities[day].rows[row].touch = Date.now();
       this.activities[day].rows[row].key = this.meKey;
-      
+
       this.debouncedWrite();
+    },
+    changeName(event) {
+      localStorage.meKey = event.target.value
     }
   },
 }
