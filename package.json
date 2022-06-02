@@ -21,7 +21,7 @@
     "@tiptap/vue-3": "^2.0.0-beta.91",
     "firebase": "^9.8.1",
     "remixicon": "^2.5.0",
-    "sanitizer": "^0.1.3",
+    "sanitize-html": "^2.7.0",
     "throttle-debounce": "^5.0.0",
     "v-contextmenu": "^3.0.0",
     "vue3-timepicker": "^1.0.0-beta.2"

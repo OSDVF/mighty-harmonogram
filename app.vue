@@ -257,19 +257,28 @@ import { db } from "~/firebase.js"
 import { get, ref, set, onValue, push, onDisconnect } from "firebase/database";
 import '~/jsExtensions';
 import { debounce } from 'throttle-debounce';
-import { sanitizeWithPolicy, makeTagPolicy } from 'sanitizer';
-
-var basicPolicy = makeTagPolicy();
-function customPolicy(tagName, attribs) {
-  switch (tagName) {
-    case 'ul':
-    case 'input':
-      return { attribs: attribs }
-    default: return basicPolicy(tagName, attribs);
-  }
+import sanitizeHtml from 'sanitize-html';
+const allowedAttributes = {
+  a: ['href', 'name', 'target'],
+  // We don't currently allow img itself by default, but
+  // these attributes would make sense if we did.
+  img: ['src', 'srcset', 'alt', 'title', 'width', 'height', 'loading'],
+  input: ['type'],
+  ul: ["data-type"]
+};
+const options = {
+  allowedTags: [
+    "address", "article", "aside", "footer", "header", "h1", "h2", "h3", "h4",
+    "h5", "h6", "hgroup", "main", "nav", "section", "blockquote", "dd", "div",
+    "dl", "dt", "figcaption", "figure", "hr", "li", "main", "ol", "p", "pre",
+    "ul", "a", "abbr", "b", "bdi", "bdo", "br", "cite", "code", "data", "dfn",
+    "em", "i", "kbd", "mark", "q", "rb", "rp", "rt", "rtc", "ruby", "s", "samp",
+    "small", "span", "strong", "sub", "sup", "time", "u", "var", "wbr", "caption",
+    "col", "colgroup", "table", "tbody", "td", "tfoot", "th", "thead", "tr",
+    "input"
+  ],
+  allowedAttributes
 }
-
-
 export default {
   data() {
     return {
@@ -565,8 +574,8 @@ export default {
     updateDisplayedData(resultVal) {
       for (var activity of resultVal.activities) {
         for (var row of activity.rows) {
-          row.comment = sanitizeWithPolicy(row.comment, customPolicy);
-          row.name = sanitizeWithPolicy(row.name, customPolicy);
+          row.comment = sanitizeHtml(row.comment, options);
+          row.name = sanitizeHtml(row.name, options);
         }
       }
       this.activities = resultVal.activities;
@@ -600,7 +609,7 @@ export default {
     },
     onActivityInput(event, day, row) {
       this.quickEditing = false;
-      this.activities[day].rows[row].name = sanitizeWithPolicy(event.target.innerHTML, customPolicy);
+      this.activities[day].rows[row].name = sanitizeHtml(event.target.innerHTML, options);
       this.activities[day].rows[row].touch = Date.now();
       this.activities[day].rows[row].key = this.meKey;
 
