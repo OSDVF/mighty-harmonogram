@@ -234,7 +234,18 @@ import { db } from "~/firebase.js"
 import { get, ref, set, onValue, push, onDisconnect } from "firebase/database";
 import '~/jsExtensions';
 import { debounce } from 'throttle-debounce';
-import { sanitize } from 'google-caja';
+import { sanitizeWithPolicy, makeTagPolicy } from 'google-caja';
+
+var basicPolicy = makeTagPolicy();
+function customPolicy(tagName, attribs) {
+  switch (tagName) {
+    case 'ul':
+    case 'input':
+      return { attribs: attribs }
+    default: return basicPolicy(tagName, attribs);
+  }
+}
+
 
 export default {
   data() {
@@ -345,7 +356,7 @@ export default {
       await this.downloadActivities();
       onValue(ref(db, this.databaseKey), (snapshot) => {
         const data = snapshot.val();
-        if (data) {
+        if (data && this.editDay == 0/* currently editing */) {
           this.updateDisplayedData(data);
         }
       });
@@ -524,8 +535,8 @@ export default {
     updateDisplayedData(resultVal) {
       for (var activity of resultVal.activities) {
         for (var row of activity.rows) {
-          row.comment = sanitize(row.comment);
-          row.name = sanitize(row.name);
+          row.comment = sanitizeWithPolicy(row.comment, customPolicy);
+          row.name = sanitizeWithPolicy(row.name, customPolicy);
         }
       }
       this.activities = resultVal.activities;
@@ -558,7 +569,7 @@ export default {
       this.debouncedWrite();
     },
     onActivityInput(event, day, row) {
-      this.activities[day].rows[row].name = sanitize(event.target.innerHTML);
+      this.activities[day].rows[row].name = sanitizeWithPolicy(event.target.innerHTML, customPolicy);
       this.debouncedWrite();
     }
   },
