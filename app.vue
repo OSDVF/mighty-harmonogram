@@ -81,44 +81,47 @@
                 @input="changeTimes(row-1, $event)"
               >
             </td>
-            <td
+            <template
               v-for="day in days"
               :key="`a${day}`"
-              tabindex="0"
-              :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
-              :rowspan="activities[day - 1]?.rows[row-1]?.time"
-              v-contextmenu:contextmenu
-              @contextmenu.prevent.stop="$event.target.focus();contextDay = day-1; contextTime = row-1"
             >
-              <div style="position:relative">
-                <button
-                  title="Zkrátit trvání"
-                  class="timeChange"
-                  v-if="activities[day - 1]?.rows[row-1]?.time>1"
-                  @click="decreaseTime(day - 1, row - 1)"
-                >-</button>
-                <button
-                  title="Prodloužit trvání"
-                  class="timeChange"
-                  style="top:24px"
-                  @click="increaseTime(day - 1, row - 1)"
-                >+</button>
-                <button
-                  v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
-                  class="startEdit"
-                  @click="startEdit(day, row, false)"
-                  title="Přidat aktivitu"
-                >+ ✏️</button>
-                <button
-                  v-if="activities[day - 1]?.rows[row - 1]?.name
+              <td
+                v-if="activities[day -1]?.rows.slice(0,row-1)?.every((rw,rwIndex)=>(rw.time + rwIndex) < row) ?? true"
+                tabindex="0"
+                :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
+                :rowspan="activities[day - 1]?.rows[row-1]?.time"
+                v-contextmenu:contextmenu
+                @contextmenu.prevent.stop="$event.target.focus();contextDay = day-1; contextTime = row-1"
+              >
+                <div style="position:sticky;top:0px">
+                  <button
+                    title="Zkrátit trvání"
+                    class="timeChange"
+                    v-if="activities[day - 1]?.rows[row-1]?.time>1"
+                    @click="decreaseTime(day - 1, row - 1)"
+                  >-</button>
+                  <button
+                    title="Prodloužit trvání"
+                    class="timeChange"
+                    style="top:24px"
+                    @click="increaseTime(day - 1, row - 1)"
+                  >+</button>
+                  <button
+                    v-if="!(activities[day - 1]?.rows[row - 1]?.name ?? false)"
+                    class="startEdit"
+                    @click="startEdit(day, row, false)"
+                    title="Přidat aktivitu"
+                  >+ ✏️</button>
+                  <button
+                    v-if="activities[day - 1]?.rows[row - 1]?.name
                   &&!(activities[day - 1]?.rows[row - 1]?.comment)"
-                  class="startEdit"
-                  @click="startEdit(day, row, true)"
-                  title="Přidat komentáře"
-                >+ 💬</button>
-              </div>
-              <div :style="{'--rs':activities[day - 1]?.rows[row-1]?.time ?? 1}">
-                <client-only v-if="
+                    class="startEdit"
+                    @click="startEdit(day, row, true)"
+                    title="Přidat komentáře"
+                  >+ 💬</button>
+                </div>
+                <div :style="{'--rs':activities[day - 1]?.rows[row-1]?.time ?? 1}">
+                  <client-only v-if="
                 editDay == day &&
                  editRow == row &&
                  (activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000
@@ -126,23 +129,25 @@
                   activities[day - 1]?.rows[row-1]?.key == this.meKey
                  )
                  ">
-                  <TipTap
-                    v-if="!commentNotName"
-                    title="Upravit název aktivity"
-                    v-model="activities[day - 1].rows[row-1].name"
-                    @update:modelValue="touchCell(day - 1, row - 1)"
-                    @close="stopEdit()"
-                  />
-                </client-only>
-                <div v-else>
-                  <div
-                    v-html="activities[day - 1]?.rows[row-1]?.name ?? ''"
-                    @dblclick="startEdit(day, row, false)"
-                  >
+                    <TipTap
+                      v-if="!commentNotName"
+                      title="Upravit název aktivity"
+                      v-model="activities[day - 1].rows[row-1].name"
+                      @update:modelValue="touchCell(day - 1, row - 1)"
+                      @close="stopEdit()"
+                    />
+                  </client-only>
+                  <div v-else>
+                    <div
+                      contenteditable="true"
+                      @blur="onActivityInput($event, day -1, row -1)"
+                      v-html="activities[day - 1]?.rows[row-1]?.name ?? ''"
+                      @dblclick="startEdit(day, row, false)"
+                    >
+                    </div>
                   </div>
                 </div>
-              </div>
-              <client-only v-if="activities[day - 1]?.rows[row-1] != null &&
+                <client-only v-if="activities[day - 1]?.rows[row-1] != null &&
                  editDay == day &&
                  editRow == row &&
                  commentNotName &&
@@ -151,21 +156,22 @@
                   activities[day - 1]?.rows[row-1].key == this.meKey
                   )
                  ">
-                <TipTap
-                  v-model="activities[day - 1].rows[row-1].comment"
-                  title="Upravit komentář"
-                  @update:modelValue="touchCell(day - 1, row - 1)"
-                  @close="stopEdit()"
-                />
-              </client-only>
-              <div
-                class="comment"
-                v-else-if="activities[day - 1]?.rows[row-1]?.comment?.replace(/<(.|\n)*?>/g, '')?.trim() && showComments"
-                v-html="activities[day - 1]?.rows[row-1]?.comment"
-                @dblclick="startEdit(day, row, true)"
-              >
-              </div>
-            </td>
+                  <TipTap
+                    v-model="activities[day - 1].rows[row-1].comment"
+                    title="Upravit komentář"
+                    @update:modelValue="touchCell(day - 1, row - 1)"
+                    @close="stopEdit()"
+                  />
+                </client-only>
+                <div
+                  class="comment"
+                  v-else-if="activities[day - 1]?.rows[row-1]?.comment?.replace(/<(.|\n)*?>/g, '')?.trim() && showComments"
+                  v-html="activities[day - 1]?.rows[row-1]?.comment"
+                  @dblclick="startEdit(day, row, true)"
+                >
+                </div>
+              </td>
+            </template>
           </tr>
         </tbody>
       </table>
@@ -549,6 +555,10 @@ export default {
     },
     changeTimes(row, event) {
       this.times[row] = event.target.value;
+      this.debouncedWrite();
+    },
+    onActivityInput(event, day, row) {
+      this.activities[day].rows[row].name = sanitize(event.target.innerHTML);
       this.debouncedWrite();
     }
   },
