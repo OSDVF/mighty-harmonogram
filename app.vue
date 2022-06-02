@@ -147,7 +147,10 @@
                   </client-only>
                   <div v-else>
                     <div
-                      :contenteditable="activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000 ? 'true':'false'"
+                      :contenteditable="(activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000
+                        ||
+                        activities[day - 1]?.rows[row-1]?.key == this.meKey
+                      ) ? 'true':'false'"
                       @focus="quickEditing = true"
                       @blur="onActivityInput($event, day -1, row -1)"
                       @input="touchCell(day - 1, row - 1)"
