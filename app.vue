@@ -234,7 +234,7 @@ import { db } from "~/firebase.js"
 import { get, ref, set, onValue, push, onDisconnect } from "firebase/database";
 import '~/jsExtensions';
 import { debounce } from 'throttle-debounce';
-import { sanitizeWithPolicy, makeTagPolicy } from 'google-caja';
+import { sanitizeWithPolicy, makeTagPolicy } from 'sanitizer';
 
 var basicPolicy = makeTagPolicy();
 function customPolicy(tagName, attribs) {
@@ -356,7 +356,7 @@ export default {
       await this.downloadActivities();
       onValue(ref(db, this.databaseKey), (snapshot) => {
         const data = snapshot.val();
-        if (data && this.editDay == 0/* currently editing */) {
+        if (data && this.editDay == 0/* not editing currently */) {
           this.updateDisplayedData(data);
         }
       });
