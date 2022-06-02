@@ -2,52 +2,58 @@
   <div>
     <div class="noprint">
       <h1 style="display:inline-block">Harmonikogram 😎👉📈</h1>&ensp;
-      <label>
-        <input
-          type="number"
-          v-model="days"
-        >
-        Dní
-      </label>
-      &ensp;
-      <label>
-        Od
-        <VueTimepicker v-model="from" />
-      </label>
-      <label>
-        Do
-        <VueTimepicker v-model="to" />
-      </label>
-      <label>
-        První den:
-        <select v-model="firstDOW">
-          <option
-            :value="index"
-            v-for="(dayName, index) in dayNames"
-            :key="dayName"
+      <label>Jméno:<input
+          type="text"
+          v-model="meKey"
+        ></label>
+      <button @click="showSettings = !showSettings">Nastavení</button>&ensp;
+      <template v-if="showSettings"><label>
+          <input
+            type="number"
+            v-model="days"
+            style="width:50px"
           >
-            {{ dayName }}
-          </option>
-        </select>
-      </label>
-      <label><input
-          type="checkbox"
-          v-model="showComments"
-        >Komentáře</label>
-      <label><input
-          type="checkbox"
-          v-model="showNotes"
-        >Poznámky</label>
-      <input
-        name="maxW"
-        type="hidden"
-        v-model="maxWidth"
-      >
-      <input
-        name="maxH"
-        type="hidden"
-        v-model="maxHeight"
-      >
+          Dní
+        </label>
+        &ensp;
+        <label>
+          Od
+          <VueTimepicker v-model="from" />
+        </label>
+        <label>
+          Do
+          <VueTimepicker v-model="to" />
+        </label>
+        <label>
+          První den:
+          <select v-model="firstDOW">
+            <option
+              :value="index"
+              v-for="(dayName, index) in dayNames"
+              :key="dayName"
+            >
+              {{ dayName }}
+            </option>
+          </select>
+        </label>
+        <label><input
+            type="checkbox"
+            v-model="showComments"
+          >Komentáře</label>
+        <label><input
+            type="checkbox"
+            v-model="showNotes"
+          >Poznámky</label>
+        <input
+          name="maxW"
+          type="hidden"
+          v-model="maxWidth"
+        >
+        <input
+          name="maxH"
+          type="hidden"
+          v-model="maxHeight"
+        ></template>
       <small style="position:absolute;top:5px;left:5px">Aktuálně připojeno {{connected}} uživatelů.</small>
     </div>
     <div class="inline-block">
@@ -171,7 +177,10 @@
                   @dblclick="startEdit(day, row, true)"
                 >
                 </div>
-                <small class="editInfo" v-if="activities[day - 1]?.rows[row-1]?.touch">Upraveno {{ new Date(activities[day - 1]?.rows[row-1]?.touch).toLocaleString() }}</small>
+                <small
+                  class="editInfo"
+                  v-if="activities[day - 1]?.rows[row-1]?.touch"
+                >Upravil {{activities[day - 1]?.rows[row-1]?.key}} {{ new Date(activities[day - 1]?.rows[row-1]?.touch).toLocaleString() }}</small>
               </td>
             </template>
           </tr>
@@ -259,6 +268,7 @@ function customPolicy(tagName, attribs) {
 export default {
   data() {
     return {
+      showSettings: false,
       quickEditing: false,
       connected: 1,
       contextDay: 0,
@@ -581,6 +591,9 @@ export default {
     onActivityInput(event, day, row) {
       this.quickEditing = false;
       this.activities[day].rows[row].name = sanitizeWithPolicy(event.target.innerHTML, customPolicy);
+      this.activities[day].rows[row].touch = Date.now();
+      this.activities[day].rows[row].key = this.meKey;
+      
       this.debouncedWrite();
     }
   },
