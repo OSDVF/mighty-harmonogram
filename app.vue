@@ -3,6 +3,10 @@
     <div class="noprint">
       <h1 style="display:inline-block">Harmonikogram 😎👉📈</h1>&ensp;
       {{error}}
+      <button
+        v-if="error"
+        @click="initialDownload"
+      >Připojit znovu</button>
       <label>Jméno:<input
           type="text"
           v-model="meKey"
@@ -87,6 +91,7 @@
                 type="text"
                 :value="this.times[row-1] || `${parseInt(from.HH) + Math.floor((row - 1) / 2) }:${ (row - 1) % 2 ? '30' : '00' }`"
                 @input="changeTimes(row-1, $event)"
+                @dblclick="this.highlights[row-1] = true"
               >
             </td>
             <template
@@ -282,6 +287,7 @@ const options = {
 export default {
   data() {
     return {
+      highlights: [],
       showSettings: false,
       quickEditing: false,
       connected: 1,
@@ -391,45 +397,7 @@ export default {
       this.databaseKey = this.$route.hash.substring(1);
     }
 
-    try {
-      await this.downloadActivities();
-      onValue(ref(db, this.databaseKey), (snapshot) => {
-        const data = snapshot.val();
-        if (data && this.editDay == 0 && this.quickEditing == false /* not editing currently */) {
-          this.updateDisplayedData(data);
-        }
-      });
-
-      var connectionsRef = ref(db, "/connections/" + this.databaseKey);
-
-      var connectedRef = ref(db, ".info/connected/");
-      // Number of online users is the number of objects in the presence list.
-
-      // When the client's connection state changes...
-      onValue(connectedRef, async (snap) => {
-
-        // If they are connected..
-        if (snap.val()) {
-
-          // Add user to the connections list.
-          var con = await push(connectionsRef, true);
-
-          // Remove user from the connection list when they disconnect.
-          onDisconnect(con).remove();
-        }
-      });
-
-      onValue(connectionsRef, (snap) => {
-        if (snap.val()) {
-          this.connected = snap.size;
-        }
-      })
-    }
-    catch (e) {
-      this.error = e;
-    }
-    this.addMissingDays();
-    this.addMissingRows();
+    this.initialDownload();
 
     setInterval(() => {
       this.nowTimestamp = Date.now();//Refresh editing lock
@@ -491,6 +459,47 @@ export default {
     }
   },
   methods: {
+    initialDownload() {
+      try {
+        await this.downloadActivities();
+        onValue(ref(db, this.databaseKey), (snapshot) => {
+          const data = snapshot.val();
+          if (data && this.editDay == 0 && this.quickEditing == false /* not editing currently */) {
+            this.updateDisplayedData(data);
+          }
+        });
+
+        var connectionsRef = ref(db, "/connections/" + this.databaseKey);
+
+        var connectedRef = ref(db, ".info/connected/");
+        // Number of online users is the number of objects in the presence list.
+
+        // When the client's connection state changes...
+        onValue(connectedRef, async (snap) => {
+
+          // If they are connected..
+          if (snap.val()) {
+
+            // Add user to the connections list.
+            var con = await push(connectionsRef, true);
+
+            // Remove user from the connection list when they disconnect.
+            onDisconnect(con).remove();
+          }
+        });
+
+        onValue(connectionsRef, (snap) => {
+          if (snap.val()) {
+            this.connected = snap.size;
+          }
+        })
+      }
+      catch (e) {
+        this.error = e;
+      }
+      this.addMissingDays();
+      this.addMissingRows();
+    },
     touchCell(day, row) {
       this.activities[day].rows[row].touch = Date.now();
       this.activities[day].rows[row].key = this.meKey;
