@@ -85,13 +85,14 @@
           <tr
             v-for="row in nOfRows"
             :key="`r${row - 1}`"
+            :class="{mark:highlights[row-1]??false}"
+            @dblclick="highlights[row-1] = !highlights[row-1];debouncedWrite()"
           >
             <td>
               <input
                 type="text"
                 :value="this.times[row-1] || `${parseInt(from.HH) + Math.floor((row - 1) / 2) }:${ (row - 1) % 2 ? '30' : '00' }`"
                 @input="changeTimes(row-1, $event)"
-                @dblclick="this.highlights[row-1] = true"
               >
             </td>
             <template
@@ -459,7 +460,7 @@ export default {
     }
   },
   methods: {
-    initialDownload() {
+    async initialDownload() {
       try {
         await this.downloadActivities();
         onValue(ref(db, this.databaseKey), (snapshot) => {
@@ -549,7 +550,8 @@ export default {
         showComments: this.showComments,
         maxWidth: this.maxWidth,
         maxHeight: this.maxHeight,
-        times: this.times
+        times: this.times,
+        highlights: this.highlights
       });
     },
     async downloadActivities() {
@@ -598,6 +600,7 @@ export default {
       this.maxWidth = resultVal.maxWidth || this.maxWidth;
       this.maxHeight = resultVal.maxHeight || this.maxHeight;
       this.times = resultVal.times || this.times;
+      this.highlights = resultVal.highlights || this.highlights;
     },
     increaseTime(day, row) {
       if (!this.activities[day].rows[row].time) {
