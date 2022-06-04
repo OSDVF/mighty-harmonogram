@@ -20,6 +20,9 @@ h1 {
   tr {
     &:nth-child(even)>td {
       --bg: 230, 230, 230;
+    }
+
+    &:nth-child(odd)>td {
       border-bottom-color: #00000026;
     }
 

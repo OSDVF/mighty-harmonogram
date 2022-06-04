@@ -85,7 +85,7 @@
           <tr
             v-for="row in nOfRows"
             :key="`r${row - 1}`"
-            :class="{mark:highlights[row-1]??false}"
+            :class="{mark:highlights[row]??false}"
             @dblclick="highlights[row-1] = !highlights[row-1];debouncedWrite()"
           >
             <td>
