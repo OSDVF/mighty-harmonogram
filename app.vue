@@ -2,16 +2,21 @@
   <div>
     <div class="noprint">
       <h1 style="display:inline-block">Harmonikogram 😎👉📈</h1>&ensp;
-      {{error}}
-      <button
-        v-if="error"
-        @click="initialDownload"
-      >Připojit znovu</button>
-      <label>Jméno:<input
-          type="text"
-          v-model="meName"
-          @input="changeName"
-        ></label>
+      <template v-if="error">
+        {{error}}
+        <button @click="initialDownload">Připojit znovu</button>
+        <br>
+      </template>
+      <template v-if="loading">
+        🔃 Načítání...
+        <br>
+      </template>
+      <input
+        type="text"
+        placeholder="Jméno"
+        v-model="meName"
+        @input="changeName"
+      >&nbsp;
       <button @click="showSettings = !showSettings">🔧 Nastavení</button>&ensp;
       <template v-if="showSettings"><label>
           <input
@@ -293,6 +298,7 @@ const randomKey = (Math.random() + 1).toString(36).substring(7);
 export default {
   data() {
     return {
+      loading: false,
       highlights: [],
       showSettings: false,
       quickEditing: false,
@@ -469,6 +475,7 @@ export default {
   },
   methods: {
     async initialDownload() {
+      this.loading = true;
       try {
         this.error = "";
         await this.downloadActivities();
@@ -509,6 +516,7 @@ export default {
       }
       this.addMissingDays();
       this.addMissingRows();
+      this.loading = false;
     },
     touchCell(day, row) {
       this.activities[day].rows[row].touch = Date.now();
