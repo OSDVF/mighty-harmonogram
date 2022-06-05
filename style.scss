@@ -189,6 +189,9 @@ button.timeChange {
   overflow-wrap: break-word;
   overflow-y: auto;
   overflow-x: visible;
+  &>div {
+    min-height: 40px;
+  }
 }
 
 .schedule td button.startEdit {
