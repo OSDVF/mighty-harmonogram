@@ -147,11 +147,9 @@ button.timeChange {
 
 .schedule>tbody>tr>td:first-child {
   --bg: 127, 127, 127;
-  vertical-align: middle;
 
   input {
     text-align: center;
-    vertical-align: middle;
     border: 0;
     background: transparent;
     margin: 0;
@@ -295,4 +293,23 @@ button.timeChange {
   border-radius: 2px;
   font-size: 20px;
   padding: 5px;
+}
+
+.lock {
+  position: relative;
+  height: 100%;
+  min-height: 40px;
+  overflow: hidden;
+
+  & + div {
+    overflow: hidden;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    text-align: right;
+    vertical-align: top;
+    position: absolute;
+    background: rgba(255, 64, 0, 0.552);
+  }
 }

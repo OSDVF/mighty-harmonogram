@@ -9,7 +9,7 @@
       >Připojit znovu</button>
       <label>Jméno:<input
           type="text"
-          v-model="meKey"
+          v-model="meName"
           @input="changeName"
         ></label>
       <button @click="showSettings = !showSettings">🔧 Nastavení</button>&ensp;
@@ -86,9 +86,8 @@
             v-for="row in nOfRows"
             :key="`r${row - 1}`"
             :class="{mark:highlights[row-1]??false}"
-            @dblclick="highlights[row-1] = !highlights[row-1];debouncedWrite()"
           >
-            <td>
+            <td @dblclick="highlights[row-1] = !highlights[row-1];debouncedWrite()">
               <input
                 type="text"
                 :value="this.times[row-1] || `${parseInt(from.HH) + Math.floor((row - 1) / 2) }:${ (row - 1) % 2 ? '30' : '00' }`"
@@ -135,28 +134,23 @@
                   >+ 💬</button>
                 </div>
                 <div :style="{'--rs':activities[day - 1]?.rows[row-1]?.time ?? 1}">
-                  <client-only v-if="
-                editDay == day &&
-                 editRow == row &&
-                 (activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000
+                  <template v-if="
+                 (activities[day - 1]?.rows[row-1]?.touch < (nowTimestamp - 3000)
                   ||
                   activities[day - 1]?.rows[row-1]?.key == this.meKey
                  )
                  ">
-                    <TipTap
-                      v-if="!commentNotName"
-                      title="Upravit název aktivity"
-                      v-model="activities[day - 1].rows[row-1].name"
-                      @update:modelValue="touchCell(day - 1, row - 1)"
-                      @close="stopEdit()"
-                    />
-                  </client-only>
-                  <div v-else>
+                    <client-only v-if="!commentNotName && editDay == day && editRow == row">
+                      <TipTap
+                        title="Upravit název aktivity"
+                        v-model="activities[day - 1].rows[row-1].name"
+                        @update:modelValue="touchCell(day - 1, row - 1)"
+                        @close="stopEdit()"
+                      />
+                    </client-only>
                     <div
-                      :contenteditable="(activities[day - 1]?.rows[row-1]?.touch < nowTimestamp - 2000
-                        ||
-                        activities[day - 1]?.rows[row-1]?.key == this.meKey
-                      ) ? 'true':'false'"
+                      v-else
+                      :contenteditable="true"
                       @focus="quickEditing = true"
                       @blur="onActivityInput($event, day -1, row -1)"
                       @input="touchCell(day - 1, row - 1)"
@@ -164,13 +158,23 @@
                       @dblclick="startEdit(day, row, false)"
                     >
                     </div>
+                  </template>
+                  <div
+                    style="position:relative"
+                    v-else
+                  >
+                    <div
+                      class="lock"
+                      v-html="activities[day - 1]?.rows[row-1]?.name ?? ''"
+                    />
+                    <div>🔐<br>{{activities[day - 1]?.rows[row-1]?.key?.split('|',1)[0]}}</div>
                   </div>
                 </div>
                 <client-only v-if="activities[day - 1]?.rows[row-1] != null &&
                  editDay == day &&
                  editRow == row &&
                  commentNotName &&
-                 (activities[day - 1]?.rows[row-1].touch < nowTimestamp
+                 (activities[day - 1]?.rows[row-1].touch < (nowTimestamp - 3000)
                  ||
                   activities[day - 1]?.rows[row-1].key == this.meKey
                   )
@@ -192,7 +196,7 @@
                 <small
                   class="editInfo"
                   v-if="activities[day - 1]?.rows[row-1]?.touch"
-                >Upravil {{activities[day - 1]?.rows[row-1]?.key}} {{ new Date(activities[day - 1]?.rows[row-1]?.touch).toLocaleString() }}</small>
+                >Upravil {{(activities[day - 1]?.rows[row-1]?.key?.split('|',1) ?? [''])[0]}} {{ new Date(activities[day - 1]?.rows[row-1]?.touch).toLocaleString() }}</small>
               </td>
             </template>
           </tr>
@@ -285,6 +289,7 @@ const options = {
   ],
   allowedAttributes
 }
+const randomKey = (Math.random() + 1).toString(36).substring(7);
 export default {
   data() {
     return {
@@ -300,7 +305,7 @@ export default {
       editingNotes: false,
       note: 'Poznámky...',
       databaseKey: 'test',
-      meKey: (Math.random() + 1).toString(36).substring(7),
+      meName: '',
       nowTimestamp: Date.now(),
       error: '',
       editDay: 0,
@@ -391,7 +396,7 @@ export default {
   async mounted() {
     var savedName = localStorage.meKey;
     if (savedName) {
-      this.meKey = savedName;
+      this.meName = savedName;
     }
 
     if (this.$route.hash) {
@@ -405,6 +410,9 @@ export default {
     }, 1000);
   },
   computed: {
+    meKey() {
+      return this.meName + '|' + randomKey;
+    },
     bgClasses() {
       const allBgs = [
         '',
