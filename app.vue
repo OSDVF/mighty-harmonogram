@@ -85,7 +85,7 @@
           <tr
             v-for="row in nOfRows"
             :key="`r${row - 1}`"
-            :class="{mark:highlights[row]??false}"
+            :class="{mark:highlights[row-1]??false}"
             @dblclick="highlights[row-1] = !highlights[row-1];debouncedWrite()"
           >
             <td>
@@ -462,6 +462,7 @@ export default {
   methods: {
     async initialDownload() {
       try {
+        this.error = "";
         await this.downloadActivities();
         onValue(ref(db, this.databaseKey), (snapshot) => {
           const data = snapshot.val();
