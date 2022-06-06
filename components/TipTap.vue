@@ -10,6 +10,7 @@
       />
       <editor-content
         @click="focusProseMirror"
+        @keyup="keyUp"
         :editor="editor"
         class="editor__content"
       />
@@ -99,6 +100,18 @@ export default {
   methods: {
     focusProseMirror(event) {
       event.target?.children[0]?.focus();
+    },
+    keyUp(evt) {
+      evt = evt || window.event;
+      var isEscape = false;
+      if ("key" in evt) {
+        isEscape = (evt.key === "Escape" || evt.key === "Esc");
+      } else {
+        isEscape = (evt.keyCode === 27);
+      }
+      if (isEscape) {
+        this.$emit('close');
+      }
     }
   },
 
