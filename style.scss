@@ -165,12 +165,13 @@ button.timeChange {
   vertical-align: top;
 }
 
-.schedule thead td {
+.schedule thead th {
   text-align: center;
   background: #00000017;
   padding: 5px;
   border: 1px solid #00000050;
   border-top: none;
+  font-weight: normal;
 
   &:not(:first-child) {
     position: sticky;
@@ -178,7 +179,7 @@ button.timeChange {
   }
 }
 
-.schedule thead td:not(:first-child) {
+.schedule thead th:not(:first-child) {
   min-width: 70px;
 }
 
@@ -189,6 +190,7 @@ button.timeChange {
   overflow-wrap: break-word;
   overflow-y: auto;
   overflow-x: visible;
+
   &>div {
     min-height: 40px;
   }
@@ -206,11 +208,11 @@ button.timeChange {
   display: unset;
 }
 
-.schedule thead td:first-child {
+.schedule thead th:first-child {
   border-left: none;
 }
 
-.schedule thead td:last-child {
+.schedule thead th:last-child {
   border-right: none;
 }
 
@@ -267,9 +269,14 @@ button.timeChange {
     display: none
   }
 
-  .schedule thead td {
-    position: relative;
-    top: unset;
+  .schedule thead {
+    &.chrome {
+      display: table-row-group;//Breaks repeating table header
+    }
+
+    th:not(:first-child) {
+      position: static;
+    }
   }
 
   .schedule tbody td>div:nth-child(2) {
@@ -304,7 +311,7 @@ button.timeChange {
   min-height: 40px;
   overflow: hidden;
 
-  & + div {
+  &+div {
     overflow: hidden;
     top: 0;
     right: 0;

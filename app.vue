@@ -75,15 +75,15 @@
         '--maxH':maxHeight,
       }"
       >
-        <thead>
+        <thead :class="{chrome:isChrome}">
           <tr>
-            <td>{{text.time}}</td>
-            <td
+            <th>{{text.time}}</th>
+            <th
               v-for="day in days"
               :key="day"
             >
               {{dayNames[(day + firstDOW - 1) % dayNames.length].capitalize()}}
-            </td>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -416,6 +416,9 @@ export default {
     }, 1000);
   },
   computed: {
+    isChrome() {
+      return navigator?.appVersion?.indexOf("Chrome/") ?? false;
+    },
     meKey() {
       return this.meName + '|' + randomKey;
     },
