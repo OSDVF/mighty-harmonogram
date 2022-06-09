@@ -51,6 +51,14 @@ export default {
           isActive: () => this.editor.isActive('strike'),
         },
         {
+          icon: 'link',
+          title: 'Link',
+          action: () => this.editor.isActive('link') ?
+            this.editor.chain().focus().unsetLink().run() :
+            this.editor.chain().focus().setLink({ href: prompt("Address:"), target: '_blank' }).run(),
+          isActive: () => this.editor.isActive('link'),
+        },
+        {
           icon: 'code-view',
           title: 'Code',
           action: () => this.editor.chain().focus().toggleCode().run(),

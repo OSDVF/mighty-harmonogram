@@ -109,7 +109,7 @@
                 :class="bgClasses[activities[day - 1]?.rows[row-1]?.type ?? 0]"
                 :rowspan="activities[day - 1]?.rows[row-1]?.time"
                 v-contextmenu:contextmenu
-                @contextmenu.prevent.stop="$event.target.focus();contextDay = day-1; contextTime = row-1"
+                @contextmenu.prevent.stop="linkDisplay($event);$event.target.focus();contextDay = day-1; contextTime = row-1"
               >
                 <div style="position:sticky;top:0px">
                   <button
@@ -242,6 +242,9 @@
     </div>
 
     <v-contextmenu ref="contextmenu">
+      <v-contextmenu-item v-if="nextLink" @click="goToLink">
+        Jít na odkaz
+      </v-contextmenu-item>
       <template
         v-for="item in menuItems"
         :key="item.label"
@@ -298,6 +301,7 @@ const randomKey = (Math.random() + 1).toString(36).substring(7);
 export default {
   data() {
     return {
+      nextLink: null,
       loading: false,
       highlights: [],
       showSettings: false,
@@ -477,6 +481,19 @@ export default {
     }
   },
   methods: {
+    goToLink()
+    {
+      if(location)
+        window?.open(this.nextLink);
+    },
+    linkDisplay(event)
+    {
+      this.nextLink = null;
+      if(event.target?.tagName == 'A')
+      {
+        this.nextLink = event.target?.href;
+      }
+    },
     async initialDownload() {
       this.loading = true;
       try {
